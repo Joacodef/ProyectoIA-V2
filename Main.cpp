@@ -2,7 +2,7 @@
 #include <fstream>
 #include <cstring>
 #include <bits/stdc++.h>
-#include "Funciones.h"
+#include "GeneradorSoluciones.h"
 
 using namespace std;
 
@@ -41,14 +41,16 @@ int main() {
 
             //time(&start);
 
-            //ListaVehiculos vehiculos = loopGeneracionSolucion(depot, estaciones, clientes, inst, eficienciaEsperada);
+            ListaVehiculos vehiculos = generarSoluciones(10,inst,clientes,estaciones,depot);
             
             //time(&end);
             //tiempoEjecucion = double(end-start)/ double(CLOCKS_PER_SEC);
 
             //generarOutput(vehiculos,nombreArchivo,tiempoEjecucion);
             
-
+            for(unsigned int i=0;i<vehiculos.len();i++){
+                cout << vehiculos.getVehiculo(i).recorrido.to_string()<<"\n";
+            }
             estaciones.free();
             clientes.free();
             nodos.free();

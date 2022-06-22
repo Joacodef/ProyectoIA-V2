@@ -1,5 +1,7 @@
 #include <iostream>
 #include "Nodo.h"
+#include <stdlib.h>
+#include <time.h>
 
 using namespace std;
 
@@ -7,6 +9,7 @@ using namespace std;
 
 class Vehiculo{
     public:
+        int ID;
         ListaNodos recorrido;
         int tiempoTranscurrido;
         double distanciaTotalRecorrida;
@@ -22,6 +25,8 @@ class Vehiculo{
 };
 
 Vehiculo::Vehiculo(){
+    srand (time(NULL));
+    ID = rand() % 99999999 + 1;
     tiempoTranscurrido = 0;
     distanciaTotalRecorrida = 0.0;
     distanciaDesdeRecarga = 0.0;
@@ -29,6 +34,8 @@ Vehiculo::Vehiculo(){
 }
 
 Vehiculo::Vehiculo(Nodo depot){
+    srand (time(NULL));
+    ID = rand() % 99999999 + 1;
     tiempoTranscurrido = 0;
     distanciaTotalRecorrida = 0.0;
     distanciaDesdeRecarga = 0.0;
@@ -137,6 +144,7 @@ class ListaVehiculos{
         void goToPos(unsigned int pos);
         void free();
         double calcularDistTotal();
+        Vehiculo getCurr();
 };
 
 ListaVehiculos::ListaVehiculos(){
@@ -261,30 +269,42 @@ double ListaVehiculos::calcularDistTotal(){
     return distancia;
 }
 
+Vehiculo ListaVehiculos::getCurr(){
+    return curr->data;
+}
+
 // Clase que se asocia al concepto de variable en la representación
 
 class Variable{
     public:
+        int ID;
         Nodo nodoAsignado;
         Vehiculo vehiculo;
         ListaNodos dominio;
 
         Variable();
-        Variable(Nodo nodo, Vehiculo vehi, ListaNodos clientes, 
-                 ListaNodos estaciones, Nodo depot);
+        Variable(ListaNodos clientes, ListaNodos estaciones, Nodo depot);
         void eliminarClientesDominio();
         void eliminarNodosMasLejosDepot(double distancia);
         void resetearDominio(ListaNodos clientes, ListaNodos estaciones, Nodo depot);
+        void quitarDelDominio(Nodo node);
+        void asignarVehiculo(Vehiculo vehi);
+        bool dominioVacio();
+        void asignarNodo(Nodo node);
+        ListaNodos dominioSoloClientes();
 };
 
 Variable::Variable(){
+    srand (time(NULL));
+    ID = rand() % 99999999 + 1;
     nodoAsignado = Nodo();
     vehiculo = Vehiculo();
     dominio = ListaNodos();
 }
 
-Variable::Variable(ListaNodos clientes, 
-                   ListaNodos estaciones, Nodo depot){
+Variable::Variable(ListaNodos clientes, ListaNodos estaciones, Nodo depot){
+    srand (time(NULL));
+    ID = rand() % 99999999 + 1;
     nodoAsignado = Nodo();
     vehiculo = Vehiculo();
     dominio = concatenar(clientes,estaciones);
@@ -294,6 +314,43 @@ Variable::Variable(ListaNodos clientes,
 void Variable::resetearDominio(ListaNodos clientes, ListaNodos estaciones, Nodo depot){
     dominio = concatenar(clientes,estaciones);
     dominio.append(depot);
+}
+
+void Variable::quitarDelDominio(Nodo node){
+    if(dominio.len() < 1) return;
+    int pos = dominio.find(node);
+    if(pos != -1){
+        dominio.remove(pos);
+    }
+}
+
+void Variable::asignarVehiculo(Vehiculo vehi){
+    if(vehiculo.recorrido.len() > 0) return;
+    vehiculo = vehi;
+}
+
+bool Variable::dominioVacio(){
+    if(dominio.len()>0) return false;
+    else return true;
+}
+
+void Variable::asignarNodo(Nodo node){
+    if(node.tipo=='d'){
+        //si se asigna depot es porque no hay otra alternativa
+        dominio.clear();
+    }
+    nodoAsignado=node;
+}
+
+ListaNodos Variable::dominioSoloClientes(){
+    ListaNodos domCli = ListaNodos();
+    if(dominio.len()<1) return domCli;
+    for(unsigned int i=0;i<dominio.len();i++){
+        if(dominio.getNodo(i).tipo=='c'){
+            domCli.append(dominio.getNodo(i));
+        }
+    }
+    return domCli;
 }
 
 typedef struct tVar{
@@ -308,13 +365,11 @@ class ListaVariables{
     tVar *curr;
     unsigned int listSize;
     unsigned int pos;
-    ListaVehiculos vehiculosEnUso;
-    ListaVehiculos mejorSolucion;
-
-    //quiza se puede restringir el dominio de una variable en seguida
-    //con clientesVisitados
+    //ListaVehiculos vehiculosEnUso;
+    
 
     public:
+        ListaVehiculos mejorSolucion;
         ListaVariables();
         void insertInFront(Variable item);
         void append(Variable vari); 
@@ -332,15 +387,18 @@ class ListaVariables{
         void goToPos(unsigned int pos);
         void free();
         ListaNodos clientesVisitados();
+        //void agregarVehiculo(Vehiculo vehi);
+        Variable getVariable(unsigned int pos);
+        ListaVehiculos extraerSolucionActual();
+        void printNodos();
 };
 
 ListaVariables::ListaVariables(){
     head = tail = curr = (tVar*)malloc(sizeof(tVar)); // Siempre es la cabecera
     listSize = 0;
     pos = 0;
-    clientesVisitados = ListaNodos();
-    vehiculosEnUso = ListaNodos();
-    mejorSolucion = ListaNodos();
+    //vehiculosEnUso = ListaVehiculos();
+    mejorSolucion = ListaVehiculos();
 }
 
 void ListaVariables::insertInFront(Variable item){
@@ -352,9 +410,14 @@ void ListaVariables::insertInFront(Variable item){
     listSize++;
 }
 
-void ListaVariables::append(Variable vehi){
+void ListaVariables::append(Variable var){
     moveToEnd();
-    insertInFront(vehi);
+    Variable aux = Variable();
+    aux.ID = var.ID;
+    aux.nodoAsignado = var.nodoAsignado;
+    aux.vehiculo = var.vehiculo;
+    aux.dominio = var.dominio;
+    insertInFront(aux);
     moveToStart();
 }
 
@@ -419,13 +482,14 @@ void ListaVariables::clear(){
     }
 }
 
-Variable ListaVariables::getCurr() return curr->data;
+Variable ListaVariables::getCurr(){
+    return curr->data;
+}
 
-/*
+
 Variable ListaVariables::getVariable(unsigned int pos){
-    //El head es posicion -1, el siguiente es posicion 0
     Variable varAux;
-    if(pos>=listSize) return vehiAux;
+    if(pos>=listSize) return varAux;
     moveToStart();
     next();
     for(unsigned int i = 0;i<pos;i++){
@@ -433,7 +497,7 @@ Variable ListaVariables::getVariable(unsigned int pos){
     }
     varAux = curr->data;
     return varAux;
-}*/
+}
 
 unsigned int ListaVariables::getPos(){return pos;}
 
@@ -454,6 +518,53 @@ void ListaVariables::free(){
 }
 
 ListaNodos ListaVariables::clientesVisitados(){
-    ListaNodos = ListaNodos();
-    
+    ListaNodos clientes = ListaNodos();
+    if(listSize<1) {
+        return clientes;
+    }
+    for(unsigned int i = 0;i<listSize;i++){
+        clientes.append(getVariable(i).nodoAsignado);
+    }
+    return clientes;
 }
+
+ListaVehiculos ListaVariables::extraerSolucionActual(){
+    ListaVehiculos sol = ListaVehiculos();
+    Variable varAux = Variable();
+    for(unsigned int i=0;i<listSize;i++){
+        varAux = getVariable(i);
+        if(sol.len()==0) sol.append(varAux.vehiculo);
+        else{
+            //Los vehiculos se repiten entre variables, por lo tanto
+            //se debe buscar los vehiculos distintos que hayan en la solucion
+            if(varAux.vehiculo.ID != sol.getCurr().ID){
+                sol.append(varAux.vehiculo);
+                sol.moveToEnd();
+                sol.getCurr().recorrido.append(varAux.nodoAsignado);
+            }
+            else{
+                sol.getCurr().recorrido.append(varAux.nodoAsignado);
+            }
+        }
+    }
+    return sol;
+}
+
+void ListaVariables::printNodos(){
+    Variable varAux;
+    for(unsigned int i;i<listSize;i++){
+        varAux = getVariable(i);
+        cout << varAux.nodoAsignado.ID << varAux.nodoAsignado.tipo << "-";
+    }
+    cout << "\n";
+}
+
+/*
+void ListaVariables::agregarVehiculo(Vehiculo vehi){
+    for(unsigned int i; i<vehiculosEnUso.len(); i++){
+        if(vehiculosEnUso.getVehiculo(i).ID == vehi.ID){
+            return;
+        }
+    }
+    vehiculosEnUso.append(vehi);
+}*/

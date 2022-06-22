@@ -241,6 +241,11 @@ ListaNodos concatenar(ListaNodos lista1, ListaNodos lista2){
     return concatenacion;
 }
 
+bool nodosIguales(Nodo nodo1, Nodo nodo2){
+    if(nodo1.ID == nodo2.ID && nodo1.tipo == nodo2.tipo) return true;
+    return false;
+}
+
 //Funciones para calcular distancia entre nodos:
 
 double aRadianes(double num){
@@ -282,7 +287,7 @@ Nodo nodoMenorDistancia(Nodo actual, ListaNodos dominio, double *distPtr){
     double menor = 999999999.9;
     Nodo menorNodo;
     double distancia = 0.0;
-    for(int i=0; i<dominio.len();i++){
+    for(unsigned int i=0; i<dominio.len();i++){
         if(actual.ID == dominio.getNodo(i).ID && actual.tipo == dominio.getNodo(i).tipo) continue;
         distancia = calcularDistancia(dominio.getNodo(i),actual);
         if(distancia<menor){
