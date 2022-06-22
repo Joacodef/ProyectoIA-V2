@@ -277,24 +277,22 @@ double calcularDistancia(Nodo nodo1, Nodo nodo2){
 }
 
 
-/*
-Nodo* nodoMenorDistancia(Nodo centro, Nodo *demasNodos, int size, ListaNodos dominio, double *distPtr){
+
+Nodo nodoMenorDistancia(Nodo actual, ListaNodos dominio, double *distPtr){
     double menor = 999999999.9;
-    Nodo *menorNodo;
+    Nodo menorNodo;
     double distancia = 0.0;
-    for(int i=0; i<size;i++){
-        if(centro.ID == demasNodos[i].ID && centro.tipo == demasNodos[i].tipo) continue;
-        if(nodosRestringidos.find(demasNodos[i])!=-1) continue;
-        distancia = calcularDistancia(centro.longitud,centro.latitud,
-                                    demasNodos[i].longitud,demasNodos[i].latitud);
+    for(int i=0; i<dominio.len();i++){
+        if(actual.ID == dominio.getNodo(i).ID && actual.tipo == dominio.getNodo(i).tipo) continue;
+        distancia = calcularDistancia(dominio.getNodo(i),actual);
         if(distancia<menor){
             menor = distancia;
             *distPtr = distancia;
-            menorNodo = &demasNodos[i];
+            menorNodo = dominio.getNodo(i);
         }      
     }
     return menorNodo;
-}*/
+}
 
 
 /*

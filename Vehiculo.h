@@ -18,6 +18,7 @@ class Vehiculo{
         void agregarParada(Nodo nodo, double velocidad, double distancia, int tiempoServicio, int tiempoRecarga);
         void quitarUltimaParada(int velocidad, int tiempoServicio, int tiempoRecarga);
         void reiniciarRecorrido();
+        bool terminoRecorrido();
 };
 
 Vehiculo::Vehiculo(){
@@ -95,6 +96,13 @@ void Vehiculo::reiniciarRecorrido(){
     distanciaDesdeRecarga = 0.0;
     cantClientesVisitados = 0;
     recorrido.clear();
+}
+
+bool Vehiculo::terminoRecorrido(){
+    if(recorrido.len() < 2) return false;
+    recorrido.moveToEnd();
+    if(recorrido.getCurr().tipo=='d') return true;
+    else return false;
 }
 
 typedef struct tVehi{
@@ -275,10 +283,10 @@ Variable::Variable(){
     dominio = ListaNodos();
 }
 
-Variable::Variable(Nodo nodo, Vehiculo vehi, ListaNodos clientes, 
+Variable::Variable(ListaNodos clientes, 
                    ListaNodos estaciones, Nodo depot){
-    nodoAsignado = nodo;
-    vehiculo = vehi;
+    nodoAsignado = Nodo();
+    vehiculo = Vehiculo();
     dominio = concatenar(clientes,estaciones);
     dominio.append(depot);
 }
@@ -300,10 +308,11 @@ class ListaVariables{
     tVar *curr;
     unsigned int listSize;
     unsigned int pos;
-    ListaNodos clientesVisitados;
-    ListaVehiculos recorridosRealizados;
+    ListaVehiculos vehiculosEnUso;
     ListaVehiculos mejorSolucion;
 
+    //quiza se puede restringir el dominio de una variable en seguida
+    //con clientesVisitados
 
     public:
         ListaVariables();
@@ -317,16 +326,21 @@ class ListaVariables{
         void prev();
         void next();
         void clear();
+        Variable getCurr();
         unsigned int getPos();
         unsigned int len();
         void goToPos(unsigned int pos);
         void free();
+        ListaNodos clientesVisitados();
 };
 
 ListaVariables::ListaVariables(){
     head = tail = curr = (tVar*)malloc(sizeof(tVar)); // Siempre es la cabecera
     listSize = 0;
     pos = 0;
+    clientesVisitados = ListaNodos();
+    vehiculosEnUso = ListaNodos();
+    mejorSolucion = ListaNodos();
 }
 
 void ListaVariables::insertInFront(Variable item){
@@ -404,6 +418,9 @@ void ListaVariables::clear(){
         removeNext();
     }
 }
+
+Variable ListaVariables::getCurr() return curr->data;
+
 /*
 Variable ListaVariables::getVariable(unsigned int pos){
     //El head es posicion -1, el siguiente es posicion 0
@@ -434,4 +451,9 @@ void ListaVariables::goToPos(unsigned int pos){
 void ListaVariables::free(){
     clear();
     std::free(head);
+}
+
+ListaNodos ListaVariables::clientesVisitados(){
+    ListaNodos = ListaNodos();
+    
 }
