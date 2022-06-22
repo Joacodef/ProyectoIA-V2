@@ -14,7 +14,9 @@ class Vehiculo{
         unsigned int cantClientesVisitados;
 
         Vehiculo();
+        Vehiculo(Nodo depot);
         void agregarParada(Nodo nodo, double velocidad, double distancia, int tiempoServicio, int tiempoRecarga);
+        void quitarUltimaParada(int velocidad, int tiempoServicio, int tiempoRecarga);
         void reiniciarRecorrido();
 };
 
@@ -25,8 +27,16 @@ Vehiculo::Vehiculo(){
     cantClientesVisitados = 0;
 }
 
+Vehiculo::Vehiculo(Nodo depot){
+    tiempoTranscurrido = 0;
+    distanciaTotalRecorrida = 0.0;
+    distanciaDesdeRecarga = 0.0;
+    cantClientesVisitados = 0;
+    recorrido.append(depot);
+}
+
 void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia, int tiempoServicio, int tiempoRecarga){
-    recorrido.insertInFront(nodo);
+    recorrido.append(nodo);
     tiempoTranscurrido += distancia/velocidad;
     distanciaTotalRecorrida += distancia;
     distanciaDesdeRecarga += distancia;
@@ -40,12 +50,44 @@ void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia, int 
     }
 }
 
+void Vehiculo::quitarUltimaParada(int velocidad, int tiempoServicio, int tiempoRecarga){
+    if(recorrido.len()<=1) return; //no se puede quitar el depot
+    recorrido.moveToEnd();
+    Nodo nodoAux = recorrido.getCurr();
+    recorrido.prev();
+    double distancia = 0.0;
 
+    distancia = calcularDistancia(nodoAux, recorrido.getCurr());
 
-typedef struct tVehi{
-    Vehiculo data;
-    struct tVehi *next;
-} tVehi;
+    tiempoTranscurrido -= distancia/velocidad;
+    distanciaTotalRecorrida -= distancia;
+    distanciaDesdeRecarga -= distancia;
+
+    recorrido.moveToEnd();
+
+    if(recorrido.getCurr().tipo=='f'){
+        //Se debe calcular la distancia que se había recorrido desde el depot u otra estacion
+        //antes de llegar a la estacion actual.
+        distancia = 0.0;
+        do{
+            nodoAux = recorrido.getCurr();
+            recorrido.prev();
+            distancia += calcularDistancia(nodoAux,recorrido.getCurr());
+
+        }while(recorrido.getCurr().tipo=='c');
+        tiempoTranscurrido -= tiempoRecarga;
+        distanciaDesdeRecarga -= distancia;
+    }
+    else if(recorrido.getCurr().tipo=='c'){
+        tiempoTranscurrido-=tiempoServicio;
+        cantClientesVisitados--;
+    }
+    else{
+        cout << "\nError, se está intentando quitar una parada del recorrido, pero no hay nodos para quitar.\n";
+        return;
+    }
+    recorrido.pop();
+}
 
 void Vehiculo::reiniciarRecorrido(){
     tiempoTranscurrido = 0;
@@ -55,12 +97,18 @@ void Vehiculo::reiniciarRecorrido(){
     recorrido.clear();
 }
 
+typedef struct tVehi{
+    Vehiculo data;
+    struct tVehi *next;
+} tVehi;
+
+
 //ListaVehiculos tambien es una lista enlazada
 
 class ListaVehiculos{
     tVehi *head;
     tVehi *tail;
-    tVehi *curr; // curr apunta al nodo anterior al actual
+    tVehi *curr; 
     unsigned int listSize;
     unsigned int pos;
     public:
@@ -80,6 +128,7 @@ class ListaVehiculos{
         unsigned int len();
         void goToPos(unsigned int pos);
         void free();
+        double calcularDistTotal();
 };
 
 ListaVehiculos::ListaVehiculos(){
@@ -191,6 +240,198 @@ void ListaVehiculos::goToPos(unsigned int pos){
 }
 
 void ListaVehiculos::free(){
+    clear();
+    std::free(head);
+}
+
+double ListaVehiculos::calcularDistTotal(){
+    double distancia = 0.0;
+    if(listSize < 1) return distancia;
+    for(unsigned int i = 0; i<listSize;i++){
+        distancia += getVehiculo(i).distanciaTotalRecorrida;
+    }
+    return distancia;
+}
+
+// Clase que se asocia al concepto de variable en la representación
+
+class Variable{
+    public:
+        Nodo nodoAsignado;
+        Vehiculo vehiculo;
+        ListaNodos dominio;
+
+        Variable();
+        Variable(Nodo nodo, Vehiculo vehi, ListaNodos clientes, 
+                 ListaNodos estaciones, Nodo depot);
+        void eliminarClientesDominio();
+        void eliminarNodosMasLejosDepot(double distancia);
+        void resetearDominio(ListaNodos clientes, ListaNodos estaciones, Nodo depot);
+};
+
+Variable::Variable(){
+    nodoAsignado = Nodo();
+    vehiculo = Vehiculo();
+    dominio = ListaNodos();
+}
+
+Variable::Variable(Nodo nodo, Vehiculo vehi, ListaNodos clientes, 
+                   ListaNodos estaciones, Nodo depot){
+    nodoAsignado = nodo;
+    vehiculo = vehi;
+    dominio = concatenar(clientes,estaciones);
+    dominio.append(depot);
+}
+
+void Variable::resetearDominio(ListaNodos clientes, ListaNodos estaciones, Nodo depot){
+    dominio = concatenar(clientes,estaciones);
+    dominio.append(depot);
+}
+
+typedef struct tVar{
+    Variable data;
+    struct tVar *next;
+} tVar;
+
+
+class ListaVariables{
+    tVar *head;
+    tVar *tail;
+    tVar *curr;
+    unsigned int listSize;
+    unsigned int pos;
+    ListaNodos clientesVisitados;
+    ListaVehiculos recorridosRealizados;
+    ListaVehiculos mejorSolucion;
+
+
+    public:
+        ListaVariables();
+        void insertInFront(Variable item);
+        void append(Variable vari); 
+        void remove(unsigned int pos);
+        void removeNext();
+        Variable pop();
+        void moveToStart();
+        void moveToEnd();
+        void prev();
+        void next();
+        void clear();
+        unsigned int getPos();
+        unsigned int len();
+        void goToPos(unsigned int pos);
+        void free();
+};
+
+ListaVariables::ListaVariables(){
+    head = tail = curr = (tVar*)malloc(sizeof(tVar)); // Siempre es la cabecera
+    listSize = 0;
+    pos = 0;
+}
+
+void ListaVariables::insertInFront(Variable item){
+    tVar *aux = curr->next;
+    curr->next = (tVar*)malloc(sizeof(tVar));
+    curr->next->data = item;
+    curr->next->next = aux;
+    if(curr == tail) tail = curr->next;
+    listSize++;
+}
+
+void ListaVariables::append(Variable vehi){
+    moveToEnd();
+    insertInFront(vehi);
+    moveToStart();
+}
+
+void ListaVariables::remove(unsigned int pos){
+    if(pos>listSize) return;
+    goToPos(pos);
+    prev();
+    removeNext();
+    moveToStart();
+}
+
+void ListaVariables::removeNext(){
+    if(curr==tail) return;
+    if(curr->next == tail) tail = curr;
+    tVar *aux = curr->next;
+    curr->next = curr->next->next;
+    listSize--;
+    std::free(aux);
+}
+
+Variable ListaVariables::pop(){
+    Variable vehiAux;
+    if(listSize==0) return vehiAux;
+    moveToEnd();
+    vehiAux = curr->data;
+    prev();
+    removeNext();
+    moveToStart();
+    return vehiAux;
+}
+
+void ListaVariables::moveToStart(){
+    curr=head;
+    pos=0;
+}
+
+void ListaVariables::moveToEnd(){
+    curr=tail;
+    pos=listSize;
+}
+
+void ListaVariables::prev(){
+    tVar *temp;
+    if (curr==head) return;
+    temp = head;
+    while (temp->next != curr) temp = temp->next;
+    curr = temp;
+    pos--;
+}
+
+void ListaVariables::next(){
+    if (curr != tail){
+        curr = curr->next; 
+        pos++;
+    } 
+}
+
+void ListaVariables::clear(){
+    moveToStart();
+    while(listSize>0){
+        removeNext();
+    }
+}
+/*
+Variable ListaVariables::getVariable(unsigned int pos){
+    //El head es posicion -1, el siguiente es posicion 0
+    Variable varAux;
+    if(pos>=listSize) return vehiAux;
+    moveToStart();
+    next();
+    for(unsigned int i = 0;i<pos;i++){
+        next();
+    }
+    varAux = curr->data;
+    return varAux;
+}*/
+
+unsigned int ListaVariables::getPos(){return pos;}
+
+unsigned int ListaVariables::len(){return listSize;}
+
+void ListaVariables::goToPos(unsigned int pos){
+    moveToStart();
+    if(pos>=listSize) return;
+    next();
+    for(unsigned int i=0;i<pos;i++){
+        next();
+    }
+}
+
+void ListaVariables::free(){
     clear();
     std::free(head);
 }
