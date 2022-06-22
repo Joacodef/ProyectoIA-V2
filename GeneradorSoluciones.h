@@ -76,8 +76,8 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         if(!backtracking){
             variableActual = Variable(clientes,estaciones,depot);
             if(contadorIter == 0){
-                Vehiculo vehi = Vehiculo();
-                variableActual.asignarVehiculo(vehi);
+                //Vehiculo vehi = Vehiculo();
+                //variableActual.asignarVehiculo(vehi);
                 variableActual.asignarNodo(depot);
                 variables.append(variableActual);
                 contadorIter++;
@@ -89,8 +89,9 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         }
         variables.moveToEnd();
         if(!variables.getCurr().vehiculo.terminoRecorrido()){
-            Vehiculo vehi = Vehiculo(); 
-            variableActual.asignarVehiculo(vehi); //verificar si ya tiene vehiculo asignado
+            //variables.prev();
+            //variableActual.asignarVehiculo(variables.getCurr().vehiculo);
+            //variables.moveToEnd();
             while(!variableSeAsigno && !variableActual.dominioVacio()){
                 if(variableActual.dominioSoloClientes().len() < 1){
                     nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominio,&distancia);
@@ -109,7 +110,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                     //cout << "Nodo recien asignado: "<<variables.getCurr().nodoAsignado.ID<<"-"<<variables.getCurr().nodoAsignado.tipo<<"\n";
                     //variables.agregarVehiculo(variableActual.vehiculo);
                     variableSeAsigno = true;
-                    cout << "largolista: "<<variables.len()<<"\n";
+                    //cout << "largolista: "<<variables.len()<<"\n";
                     variables.printNodos();
                 }
                 else{
@@ -133,7 +134,8 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             }
         }
         else{
-
+            //Vehiculo vehi = Vehiculo();
+            //variableActual.asignarVehiculo(vehi);
             variableActual.asignarNodo(depot);
             variables.append(variableActual);
         }

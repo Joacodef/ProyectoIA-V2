@@ -325,7 +325,6 @@ void Variable::quitarDelDominio(Nodo node){
 }
 
 void Variable::asignarVehiculo(Vehiculo vehi){
-    if(vehiculo.recorrido.len() > 0) return;
     vehiculo = vehi;
 }
 
@@ -530,23 +529,34 @@ ListaNodos ListaVariables::clientesVisitados(){
 
 ListaVehiculos ListaVariables::extraerSolucionActual(){
     ListaVehiculos sol = ListaVehiculos();
-    Variable varAux = Variable();
-    for(unsigned int i=0;i<listSize;i++){
+    moveToStart();
+    Variable varAux;
+    Vehiculo vehiAux;
+    int contadorDepots = 0;
+    for(unsigned int i = 0; i<listSize;i++){
         varAux = getVariable(i);
-        if(sol.len()==0) sol.append(varAux.vehiculo);
-        else{
-            //Los vehiculos se repiten entre variables, por lo tanto
-            //se debe buscar los vehiculos distintos que hayan en la solucion
-            if(varAux.vehiculo.ID != sol.getCurr().ID){
-                sol.append(varAux.vehiculo);
-                sol.moveToEnd();
-                sol.getCurr().recorrido.append(varAux.nodoAsignado);
+        if(varAux.nodoAsignado.tipo=='d'){
+            contadorDepots++;
+            if(i==0){
+                vehiAux = Vehiculo();
+                vehiAux.recorrido.append(varAux.nodoAsignado);
+            }
+            else if(contadorDepots == 2){
+                vehiAux.recorrido.append(varAux.nodoAsignado);
+                sol.append(vehiAux);
+                contadorDepots = 0;
+                vehiAux = Vehiculo();
             }
             else{
-                sol.getCurr().recorrido.append(varAux.nodoAsignado);
+                vehiAux.recorrido.append(varAux.nodoAsignado);
             }
         }
+        else{
+            vehiAux.recorrido.append(varAux.nodoAsignado);
+        }
+
     }
+    if(vehiAux.recorrido.len()!=0) sol.append(vehiAux);
     return sol;
 }
 
@@ -567,4 +577,30 @@ void ListaVariables::agregarVehiculo(Vehiculo vehi){
         }
     }
     vehiculosEnUso.append(vehi);
-}*/
+}
+
+   ListaVehiculos sol = ListaVehiculos();
+    Variable varAux = Variable();
+    Vehiculo vehiAux = Vehiculo();
+    for(unsigned int i=0;i<listSize;i++){
+        varAux = getVariable(i);
+        //cout << varAux.nodoAsignado.ID<<"\n";
+        //Los vehiculos se repiten entre variables, por lo tanto
+        //se debe buscar los vehiculos distintos que hayan en la solucion
+        if(varAux.vehiculo.ID != sol.getCurr().ID){
+            if(vehiAux.recorrido.len() > 0) sol.append(vehiAux);
+            vehiAux = varAux.vehiculo;
+            vehiAux.recorrido.append(varAux.nodoAsignado);
+            //cout << varAux.nodoAsignado.ID<<"\n";
+        }
+        else{
+            vehiAux.recorrido.append(varAux.nodoAsignado);
+            //cout << varAux.nodoAsignado.ID<<"\n";
+        }        
+    }
+    if(vehiAux.recorrido.len() > 0) sol.append(vehiAux);
+    
+    for(unsigned int i=0;i<sol.len();i++){
+            cout << sol.getVehiculo(i).recorrido.to_string()<<"\n";;
+        }*/
+    

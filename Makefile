@@ -1,5 +1,5 @@
 file = Main
-test = test1
+test = test
 
 codigo: $(file).cpp
 	g++ $(file).cpp -o $(file) -Wall

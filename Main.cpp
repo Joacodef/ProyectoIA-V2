@@ -41,16 +41,17 @@ int main() {
 
             //time(&start);
 
-            ListaVehiculos vehiculos = generarSoluciones(10,inst,clientes,estaciones,depot);
+            ListaVehiculos vehiculos = generarSoluciones(30,inst,clientes,estaciones,depot);
             
             //time(&end);
             //tiempoEjecucion = double(end-start)/ double(CLOCKS_PER_SEC);
 
             //generarOutput(vehiculos,nombreArchivo,tiempoEjecucion);
-            
+
             for(unsigned int i=0;i<vehiculos.len();i++){
-                cout << vehiculos.getVehiculo(i).recorrido.to_string()<<"\n";
+                cout << vehiculos.getVehiculo(i).recorrido.to_string()<<"";
             }
+            cout << "\n";
             estaciones.free();
             clientes.free();
             nodos.free();
