@@ -5,6 +5,7 @@
 #include "Vehiculo.h"
 #include "Instancia.h"
 
+
 #define RADIO_TIERRA 4182.44949
 
 using namespace std;
@@ -103,21 +104,83 @@ Instancia extraerInstancia(ifstream& archivo){
     return inst;
 }
 
-void extraerNodos(ifstream& archivo, int numEstaciones, int numClientes, Nodo* nodos){
-    Nodo *nodosAux= (Nodo*)malloc(sizeof(Nodo)*(numClientes+numClientes+1));
-    int i = 1;
+void extraerNodos(ifstream& archivo, int numEstaciones, int numClientes, ListaNodos* nodos){
+    Nodo nodoAux = Nodo();
     //Siguientes lineas del archivo:
-    while(i <= numClientes+numEstaciones+1){
+    for(int i = 1; i <= numClientes+numEstaciones+1; i++){
         //Inicializar nodo para que valgrind no alegue:
-        nodosAux[i-1] = Nodo();
-        archivo >> nodosAux[i-1].ID;
-        archivo >> nodosAux[i-1].tipo;
-        archivo >> nodosAux[i-1].longitud;
-        archivo >> nodosAux[i-1].latitud;
-        i++;
+        archivo >> nodoAux.ID;
+        archivo >> nodoAux.tipo;
+        archivo >> nodoAux.longitud;
+        archivo >> nodoAux.latitud;
+        nodos->append(nodoAux);
     }
-    memcpy(nodos,nodosAux,sizeof(Nodo)*(numClientes+numClientes+1));
-    free(nodosAux);
 }
 
 
+Instancia extraerArchivo(ListaNodos* nodos, string nombreArchivo){ 
+    string archivoInput = "Instancias/"+nombreArchivo+".dat";
+    ifstream input(archivoInput);
+    Instancia inst = Instancia();
+    if(input.is_open()){
+        inst = extraerInstancia(input);
+        if(inst.nombre == ""){
+            cout << "\nERROR EN EXTRACCION DE INSTANCIA\n";
+            exit(-1);
+        }
+        //Almacenar nodos en variable de heap:
+        extraerNodos(input,inst.numEstaciones,inst.numClientes,nodos);
+    }
+    else{
+        cout << "\nERROR EN LECTURA DE ARCHIVO\n";
+        exit(-1);
+    }
+    
+    input.close();
+
+    return inst;
+}
+
+void generarOutput(ListaVehiculos vehiculos,string nombreArchivo, Instancia *inst, double tiempoEjecucion){
+    string archivoOutput = "Soluciones/"+nombreArchivo+".out";
+    ofstream output(archivoOutput);
+
+    //Calcular valores para mostrar:
+
+    float sumaDistancias = 0.0;
+    int sumaClientes = 0;
+    float distanciasExcedidas[vehiculos.len()];
+
+    vehiculos.moveToStart();
+    vehiculos.next();
+
+    for(unsigned int i = 0; i < vehiculos.len(); i++){
+        sumaDistancias += vehiculos.getVehiculo(i).distanciaTotalRecorrida;
+        sumaClientes += vehiculos.getVehiculo(i).cantClientesVisitados;
+        if(vehiculos.getVehiculo(i).distanciaTotalRecorrida > inst->maxDistancia){
+            distanciasExcedidas[i] = vehiculos.getVehiculo(i).distanciaTotalRecorrida - inst->maxDistancia;
+        }
+        else{
+            distanciasExcedidas[i] = 0.0;
+        }
+        vehiculos.next();
+    } 
+
+    //Escribir en el archivo de output
+    vehiculos.moveToStart();
+    vehiculos.next();
+    output << std::fixed;
+    output << std::setprecision(2);
+    output << std::fixed << sumaDistancias << "    " << sumaClientes << "     " << vehiculos.len() << "     ";
+    output << std::setprecision(10);
+    output << tiempoEjecucion <<"\n";
+    for(unsigned int i = 0; i < vehiculos.len(); i++){ 
+        output << std::setprecision(6);
+        output << vehiculos.getVehiculo(i).recorrido.to_string() << "     " << vehiculos.getVehiculo(i).distanciaTotalRecorrida << "    " 
+                    << vehiculos.getVehiculo(i).tiempoTranscurrido << "     ";
+        output << std::setprecision(2);
+        output << distanciasExcedidas[i] <<"\n";
+        vehiculos.next();
+    }
+    output.close();
+}

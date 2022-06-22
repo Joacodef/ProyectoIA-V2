@@ -79,6 +79,7 @@ class ListaVehiculos{
         unsigned int getPos();
         unsigned int len();
         void goToPos(unsigned int pos);
+        void free();
 };
 
 ListaVehiculos::ListaVehiculos(){
@@ -116,7 +117,7 @@ void ListaVehiculos::removeNext(){
     tVehi *aux = curr->next;
     curr->next = curr->next->next;
     listSize--;
-    free(aux);
+    std::free(aux);
 }
 
 Vehiculo ListaVehiculos::pop(){
@@ -187,4 +188,9 @@ void ListaVehiculos::goToPos(unsigned int pos){
     for(unsigned int i=0;i<pos;i++){
         next();
     }
+}
+
+void ListaVehiculos::free(){
+    clear();
+    std::free(head);
 }

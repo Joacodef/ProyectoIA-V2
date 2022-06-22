@@ -59,11 +59,12 @@ class ListaNodos{
         void next();
         void clear();
         Nodo getNodo(unsigned int pos);
-        string to_string();
         int find(Nodo node);
         unsigned int getPos();
         unsigned int len();
         void goToPos(unsigned int pos);
+        void free();
+        string to_string();
 };
 
 ListaNodos::ListaNodos(){
@@ -81,14 +82,12 @@ void ListaNodos::insertInFront(Nodo item){
     listSize++;
 }
 
-void ListaNodos::removeNext(){
-    if(curr==tail) return;
-    if(curr->next == tail) tail = curr;
-    tPaso *aux = curr->next;
-    curr->next = curr->next->next;
-    listSize--;
-    free(aux);
+void ListaNodos::append(Nodo node){
+    moveToEnd();
+    insertInFront(node);
+    moveToStart();
 }
+
 
 void ListaNodos::remove(unsigned int pos){
     if(pos>listSize) return;
@@ -96,6 +95,26 @@ void ListaNodos::remove(unsigned int pos){
     prev();
     removeNext();
     moveToStart();
+}
+
+void ListaNodos::removeNext(){
+    if(curr==tail) return;
+    if(curr->next == tail) tail = curr;
+    tPaso *aux = curr->next;
+    curr->next = curr->next->next;
+    listSize--;
+    std::free(aux);
+}
+
+Nodo ListaNodos::pop(){
+    Nodo nodoAux;
+    if(listSize==0) return nodoAux;
+    moveToEnd();
+    nodoAux = curr->data;
+    prev();
+    removeNext();
+    moveToStart();
+    return nodoAux;
 }
 
 void ListaNodos::moveToStart(){
@@ -133,23 +152,6 @@ void ListaNodos::clear(){
     }
 }
 
-void ListaNodos::append(Nodo node){
-    moveToEnd();
-    insertInFront(node);
-    moveToStart();
-}
-
-Nodo ListaNodos::pop(){
-    Nodo nodoAux;
-    if(listSize==0) return nodoAux;
-    moveToEnd();
-    nodoAux = curr->data;
-    prev();
-    removeNext();
-    moveToStart();
-    return nodoAux;
-}
-
 Nodo ListaNodos::getNodo(unsigned int pos){
     //El head es posicion -1, el siguiente es posicion 0
     Nodo nodoAux;
@@ -173,6 +175,24 @@ int ListaNodos::find(Nodo node){
     return -1;
 }
 
+unsigned int ListaNodos::getPos(){return pos;}
+
+unsigned int ListaNodos::len(){return listSize;}
+
+void ListaNodos::goToPos(unsigned int pos){
+    moveToStart();
+    if(pos>=listSize) return;
+    next();
+    for(unsigned int i=0;i<pos;i++){
+        next();
+    }
+}
+
+void ListaNodos::free(){
+    clear();
+    std::free(head);
+}
+
 string ListaNodos::to_string(){
     string output = "\n";
     moveToStart();
@@ -194,19 +214,6 @@ string ListaNodos::to_string(){
     return output;
 }
 
-unsigned int ListaNodos::getPos(){return pos;}
-
-unsigned int ListaNodos::len(){return listSize;}
-
-void ListaNodos::goToPos(unsigned int pos){
-    moveToStart();
-    if(pos>=listSize) return;
-    next();
-    for(unsigned int i=0;i<pos;i++){
-        next();
-    }
-}
-
 ListaNodos concatenar(ListaNodos lista1, ListaNodos lista2){
     //Con esto quedan los elementos de la lista1 seguidos de los de la lista2
     ListaNodos concatenacion = ListaNodos();
@@ -226,5 +233,4 @@ ListaNodos concatenar(ListaNodos lista1, ListaNodos lista2){
     }
     return concatenacion;
 }
-
 
