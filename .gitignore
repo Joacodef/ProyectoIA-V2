@@ -1,0 +1,5 @@
+.exe
+main
+*.dat
+*.out
+test.cpp
