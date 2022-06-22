@@ -13,6 +13,7 @@ using namespace std;
 bool verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisitados, Nodo nodoAsignado, 
                             Instancia inst, Nodo depot/*,ListaNodos dominio*/){
     bool cumple = true;
+    //cout << vehiculoDelNodo.distanciaDesdeRecarga<<"\n";
     //Verificar si se tiene combustible para llegar al nodo asignado:
     if(vehiculoDelNodo.distanciaDesdeRecarga>inst.maxDistancia){
         //Agregar cosas para quitar del dominio a otros clientes
@@ -89,43 +90,30 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         }
         variables.moveToEnd();
         if(!variables.getCurr().vehiculo.terminoRecorrido()){
-            //variables.prev();
-            //variableActual.asignarVehiculo(variables.getCurr().vehiculo);
-            //variables.moveToEnd();
             while(!variableSeAsigno && !variableActual.dominioVacio()){
                 if(variableActual.dominioSoloClientes().len() < 1){
                     nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominio,&distancia);
                 }
                 else{
                     nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominioSoloClientes(),&distancia);
-                }
-                //cout << nodoAux.ID << nodoAux.tipo << "\n";                
+                }                
                 if(verificarRestricciones(variableActual.vehiculo,variables.clientesVisitados(),
                                             nodoAux,inst,depot)){
-
                     variableActual.asignarNodo(nodoAux);
-                    //cout << variableActual.nodoAsignado.ID<<"\n";
-                    variables.append(variableActual); //(o algun otro metodo que haga mas cosas)
+                    variables.append(variableActual); 
                     variables.moveToEnd();
-                    //cout << "Nodo recien asignado: "<<variables.getCurr().nodoAsignado.ID<<"-"<<variables.getCurr().nodoAsignado.tipo<<"\n";
-                    //variables.agregarVehiculo(variableActual.vehiculo);
                     variableSeAsigno = true;
-                    //cout << "largolista: "<<variables.len()<<"\n";
-                    variables.printNodos();
                 }
                 else{
-                    //Si el valor a asignar no cumple las restricciones, se quita del dominio
                     variableActual.quitarDelDominio(nodoAux);
                 }
-
             }
             if(variableActual.dominioVacio()){
                 //cout << "REALIZANDO BACKTRACKING " << "\n";
                 backtracking = true;
-                //se necesita una manera de determinar si dos variables son iguales
                 variables.moveToEnd();
                 if(variables.getCurr().ID == variableActual.vehiculo.ID){
-                    variables.pop(); //ver si le agrego algo mas
+                    variables.pop(); 
                 }
                 variables.moveToEnd();
                 variableActual = variables.getCurr();

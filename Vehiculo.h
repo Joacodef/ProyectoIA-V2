@@ -43,7 +43,8 @@ Vehiculo::Vehiculo(Nodo depot){
     recorrido.append(depot);
 }
 
-void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia, int tiempoServicio, int tiempoRecarga){
+void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia, 
+                            int tiempoServicio, int tiempoRecarga){
     recorrido.append(nodo);
     tiempoTranscurrido += distancia/velocidad;
     distanciaTotalRecorrida += distancia;
@@ -390,6 +391,9 @@ class ListaVariables{
         Variable getVariable(unsigned int pos);
         ListaVehiculos extraerSolucionActual();
         void printNodos();
+        int find(Variable var);
+        Vehiculo rutaActual(Variable var, double velocidad, double distancia, 
+                            int tiempoServicio, int tiempoRecarga);
 };
 
 ListaVariables::ListaVariables(){
@@ -569,6 +573,43 @@ void ListaVariables::printNodos(){
     cout << "\n";
 }
 
+Vehiculo ListaVariables::rutaActual(Variable var, double velocidad, double distancia, 
+                            int tiempoServicio, int tiempoRecarga){
+    Vehiculo vehi = Vehiculo();
+    int pos = find(var);
+    if(pos!=-1)goToPos(abs(pos));
+    else{ 
+        return vehi;
+    }
+    if(getCurr().nodoAsignado.tipo=='d'){
+        //FALTA AVANZAR AQUI, PARA PODER CALCULAR RUTAS DE VEHICULOS QUE EN
+        //ESTOS MOMENTOS NO SE LES HACE SEGUIMIENTO EN TIEMPO REAL
+    }
+    else{
+        while(getCurr().nodoAsignado.tipo!='d'){
+            prev();
+        }
+        vehi.agregarParada(getCurr().nodoAsignado,0.0,0.0,0,0);
+        do{
+            vehi.agregarParada(getCurr().nodoAsignado,velocidad,distancia,
+                                            tiempoServicio,tiempoRecarga);
+        }while(getCurr().nodoAsignado.tipo!='d');
+    }
+    return vehi;
+}
+
+
+int ListaVariables::find(Variable var){
+    if(listSize==0) return -1;
+    for(unsigned int i=0;i<listSize;i++){
+        if(var.ID == getVariable(i).ID){
+            return i;
+        }
+    }
+    return -1;
+}
+
+
 /*
 void ListaVariables::agregarVehiculo(Vehiculo vehi){
     for(unsigned int i; i<vehiculosEnUso.len(); i++){
@@ -603,4 +644,3 @@ void ListaVariables::agregarVehiculo(Vehiculo vehi){
     for(unsigned int i=0;i<sol.len();i++){
             cout << sol.getVehiculo(i).recorrido.to_string()<<"\n";;
         }*/
-    

@@ -49,7 +49,7 @@ int main() {
             //generarOutput(vehiculos,nombreArchivo,tiempoEjecucion);
 
             for(unsigned int i=0;i<vehiculos.len();i++){
-                cout << vehiculos.getVehiculo(i).recorrido.to_string()<<"";
+                cout << vehiculos.getVehiculo(i).recorrido.to_string()<<"\n";
             }
             cout << "\n";
             estaciones.free();
