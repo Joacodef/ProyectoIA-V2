@@ -1,10 +1,4 @@
-#include <cstring>
-#include <bits/stdc++.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <vector>
-#include "Funciones.h"
+#include "ArchivosIO.h"
 
 using namespace std;
 
@@ -48,8 +42,9 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
     double distancia = 0.0;
     bool backtracking = false;
     bool variableSeAsigno = false;
-    while(contadorIter < maxIteraciones){
 
+    //LOOP PRINCIPAL:
+    while(contadorIter < maxIteraciones){
         /*
         Verificar si se está entrando al loop "avanzando" o por backtracking. Si es lo primero,
         se crea una variable nueva. Si es lo segundo, se utiliza variable anterior.
@@ -71,14 +66,23 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         Si se visitaron todos los clientes, se llego a una solucion
         Si se terminan iteraciones, se retorna la mejor solucion encontrada hasta el momento.        
         */
+
+        //vehiAux guardará al principio de cada iteración el recorrido en el que se esté en esta asignación
+        variables.moveToEnd();
+        vehiAux = variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, inst.tiempoServicio,inst.tiempoRecarga);
+
+        //Se comprueba si se han visitado todos los clientes 
         if(variables.clientesVisitados().len()>=abs(inst.numClientes)){
-            //Por ahora se detiene con la primera solucion encontrada
+            //(Por ahora se detiene con la primera solucion encontrada)
             return variables.extraerSolucionActual(); 
         }
         variableSeAsigno = false;
+        //Se comprueba si estamos entrando al loop por backtracking o no
         if(!backtracking){
-            variableActual = Variable(clientes,estaciones,depot);
+            //Si no es backtracking, se declara la nueva variable que se asignará en esta iteración
+            variableActual = Variable(clientes,estaciones);
             if(contadorIter == 0){
+                //Si es la primera iteración, se asigna el depot de la instancia a la variable actual.
                 variableActual.asignarNodo(depot);
                 variables.append(variableActual);
                 contadorIter++;
@@ -86,31 +90,42 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             }
         }
         else{
+            //El punto de detectar si hay backtracking es no declarar una nueva variable, por lo tanto se asigna
+            //el flag como false en seguida. (puede que haya que hacer otras cosas más adelante para este caso)
             backtracking = false;
         }
-        variables.moveToEnd();
 
-        vehiAux = variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, inst.tiempoServicio,inst.tiempoRecarga);
-        if(vehiAux.terminoRecorrido()){
+        //Se verifica si el recorrido actual ya terminó, en cuyo caso se debe asignar un depot a la nueva variable
+        if(!vehiAux.terminoRecorrido()){
+            variableActual.asignarNodo(depot);
+            variables.append(variableActual);
+        }
+        else{
+            //Se buscan asignaciones factibles para la nueva variable en un loop. Si el dominio esta vacío o se encontró
+            //la asignación, se termina el loop, habiando asignado la variable.
             while(!variableSeAsigno && !variableActual.dominioVacio()){
+                //Se verifica si a la variable no se le puede asignar ningun cliente, para que busque cualquier nodo cercano
                 if(variableActual.dominioSoloClientes().len() < 1){
-                    nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominio,&distancia);
-                }
-                else{
                     nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominioSoloClientes(),&distancia);
-                } 
-                variables.moveToEnd();
-                if(verificarRestricciones(variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, inst.tiempoServicio,
-                                            inst.tiempoRecarga),variables.clientesVisitados(),nodoAux,inst,depot)){
-                    
-                    variableActual.asignarNodo(nodoAux);
-                    variables.append(variableActual); 
-                    variables.moveToEnd();
-                    variableSeAsigno = true;
                 }
                 else{
-                    variableActual.quitarDelDominio(nodoAux);
-                }
+                    //Si todavía hay clientes, se busca el más cercano dentro del dominio:
+                    nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominioSoloClientes(),&distancia);
+                    variables.moveToEnd();
+                    //Se verifica si el cliente a asignar cumple las restricciones
+                    if(verificarRestricciones(vehiAux,variables.clientesVisitados(),nodoAux,inst,depot)){
+                        //Si las cumple, se asigna el cliente a la variable
+                        variableActual.asignarNodo(nodoAux);
+                        variables.append(variableActual); 
+                        variables.moveToEnd();
+                        variableSeAsigno = true;
+                    }
+                    else{
+                        //Si no las cumple, se debe quitar el cliente del dominio
+                        variableActual.quitarDelDominio(nodoAux);
+                    }
+                } 
+                
             }
             if(variableActual.dominioVacio()){
                 //cout << "REALIZANDO BACKTRACKING " << "\n";
@@ -128,10 +143,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
 
             }
         }
-        else{
-            variableActual.asignarNodo(depot);
-            variables.append(variableActual);
-        }
+        
         contadorIter ++;
     }
 

@@ -1,5 +1,3 @@
-#include <iostream>
-
 using namespace std;
 
 //Clase que representa a la instancia:

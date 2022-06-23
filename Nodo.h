@@ -1,5 +1,3 @@
-#include <iostream>
-#include <cmath>
 #define RADIO_TIERRA 4182.44949
 #define MY_PI 3.14159265358979323846
 
@@ -295,7 +293,6 @@ Nodo nodoMenorDistancia(Nodo actual, ListaNodos dominio, double *distPtr){
     return menorNodo;
 }
 
-
 /*
 //Funcion para calcular todas las distancias desde un nodo central a un conjunto de nodos.
 
@@ -309,20 +306,3 @@ double *calcularTodasDistancias(Nodo centro, Nodo *demasNodos, int size){
     return distancias;
 }
 */
-
-//Funcion que chequea si el nodo "actual" está en el arreglo de "nodosRestringidos".
-/*
-bool nodoRestringido(Nodo actual,ListaNodos nodosRestringidos){
-    nodosRestringidos.moveToStart();
-    nodosRestringidos.next();
-    if(actual.ID == -1) return true;
-    if(nodosRestringidos.len() == 0) return false;
-    //if(actual.restringidoTemp) return true;
-    for(unsigned int i = 0;i<nodosRestringidos.len()+1;i++){
-        if(actual.ID == nodosRestringidos.curr->data.ID && actual.tipo == nodosRestringidos.curr->data.tipo){
-            return true;
-        }
-        nodosRestringidos.next();
-    }
-    return false;
-}*/

@@ -1,4 +1,4 @@
-#include "Vehiculo.h"
+#include "Variable.h"
 #include "Instancia.h"
 
 using namespace std;
