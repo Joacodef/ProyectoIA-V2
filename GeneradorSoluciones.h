@@ -12,6 +12,7 @@ using namespace std;
 
 bool verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisitados, Nodo nodoAsignado, 
                             Instancia inst, Nodo depot/*,ListaNodos dominio*/){
+    cout<<"HOLA 612"<<"\n";
     bool cumple = true;
     //cout << vehiculoDelNodo.distanciaDesdeRecarga<<"\n";
     //Verificar si se tiene combustible para llegar al nodo asignado:
@@ -48,6 +49,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
     bool backtracking = false;
     bool variableSeAsigno = false;
     while(contadorIter < maxIteraciones){
+
         /*
         Verificar si se está entrando al loop "avanzando" o por backtracking. Si es lo primero,
         se crea una variable nueva. Si es lo segundo, se utiliza variable anterior.
@@ -69,36 +71,49 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         Si se visitaron todos los clientes, se llego a una solucion
         Si se terminan iteraciones, se retorna la mejor solucion encontrada hasta el momento.        
         */
+        cout<<"HOLA 1"<<"\n";
         if(variables.clientesVisitados().len()>=abs(inst.numClientes)){
             //Por ahora se detiene con la primera solucion encontrada
             return variables.extraerSolucionActual(); 
         }
         variableSeAsigno = false;
         if(!backtracking){
+            cout<<"HOLA 2"<<"\n";
             variableActual = Variable(clientes,estaciones,depot);
             if(contadorIter == 0){
                 //Vehiculo vehi = Vehiculo();
                 //variableActual.asignarVehiculo(vehi);
                 variableActual.asignarNodo(depot);
+                cout<<variables.getCurr().nodoAsignado.tipo<<"\n";
                 variables.append(variableActual);
                 contadorIter++;
                 continue;
             }
         }
         else{
+            cout<<"HOLA 3"<<"\n";
             backtracking = false;
         }
         variables.moveToEnd();
+        cout<<"HOLA 4"<<"\n";
         if(!variables.getCurr().vehiculo.terminoRecorrido()){
+            cout<<"HOLA 5"<<"\n";
             while(!variableSeAsigno && !variableActual.dominioVacio()){
+                cout<<"HOLA 6"<<"\n";
                 if(variableActual.dominioSoloClientes().len() < 1){
+                    cout<<"HOLA 89"<<"\n";
                     nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominio,&distancia);
                 }
                 else{
+                    cout<<"HOLA 61"<<"\n";
                     nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominioSoloClientes(),&distancia);
-                }                
-                if(verificarRestricciones(variableActual.vehiculo,variables.clientesVisitados(),
-                                            nodoAux,inst,depot)){
+                    cout<<nodoAux.ID<<nodoAux.tipo<<"\n";
+                } 
+                variables.moveToEnd();
+                cout<<variables.getCurr().nodoAsignado.tipo<<"\n";
+                if(verificarRestricciones(variables.rutaActual(variables.getCurr(),inst.velocidad, inst.tiempoServicio,
+                                            inst.tiempoRecarga),variables.clientesVisitados(),nodoAux,inst,depot)){
+                    
                     variableActual.asignarNodo(nodoAux);
                     variables.append(variableActual); 
                     variables.moveToEnd();
@@ -109,27 +124,38 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 }
             }
             if(variableActual.dominioVacio()){
+                cout<<"HOLA 7"<<"\n";
                 //cout << "REALIZANDO BACKTRACKING " << "\n";
                 backtracking = true;
+
                 variables.moveToEnd();
                 if(variables.getCurr().ID == variableActual.vehiculo.ID){
                     variables.pop(); 
                 }
+
                 variables.moveToEnd();
+
                 variableActual = variables.getCurr();
+                cout<<"HOLA 8"<<"\n";
+                cout<<variableActual.dominio.getCurr().ID<<"\n";
+                cout<<"HOLA 9"<<"\n";
+                cout<<variableActual.nodoAsignado.ID<<"\n";
                 variableActual.quitarDelDominio(variableActual.nodoAsignado);
+                
                 variableActual.nodoAsignado = Nodo();
+
             }
         }
         else{
+            //cout<<"HOLA 8"<<"\n";
             //Vehiculo vehi = Vehiculo();
             //variableActual.asignarVehiculo(vehi);
             variableActual.asignarNodo(depot);
             variables.append(variableActual);
         }
         //cout<< "\ntamaño lista variables:"<<variables.len()<<"\n";
-        
         contadorIter ++;
+        //cout<<"HOLA 9"<<"\n";
     }
 
     

@@ -154,12 +154,10 @@ void ListaNodos::clear(){
 }
 
 Nodo ListaNodos::getNodo(unsigned int pos){
-    //El head es posicion -1, el siguiente es posicion 0
     Nodo nodoAux;
-    if(pos>=listSize) return nodoAux;
+    if(pos>listSize) return nodoAux;
     moveToStart();
-    next();
-    for(unsigned int i = 0;i<pos;i++){
+    for(unsigned int i = 0;i<=pos;i++){
         next();
     }
     nodoAux = curr->data;
@@ -173,8 +171,8 @@ Nodo ListaNodos::getCurr(){
 int ListaNodos::find(Nodo node){
     if(listSize==0) return -1;
     for(unsigned int i=0;i<listSize;i++){
-        if(node.ID == getNodo(i).ID && node.tipo == getNodo(i).tipo){
-            return i;
+        if(node.ID == getNodo(i+1).ID && node.tipo == getNodo(i+1).tipo){
+            return i+1;
         }
     }
     return -1;
@@ -186,8 +184,7 @@ unsigned int ListaNodos::len(){return listSize;}
 
 void ListaNodos::goToPos(unsigned int pos){
     moveToStart();
-    if(pos>=listSize) return;
-    next();
+    if(pos>listSize) return;
     for(unsigned int i=0;i<pos;i++){
         next();
     }
@@ -226,10 +223,10 @@ ListaNodos concatenar(ListaNodos lista1, ListaNodos lista2){
     ListaNodos concatenacion = ListaNodos();
     if(lista1.len()>0 && lista2.len()>0){
         for(unsigned int i=0;i<lista1.len();i++){
-            concatenacion.append(lista1.getNodo(i));
+            concatenacion.append(lista1.getNodo(i+1));
         }
         for(unsigned int i=0;i<lista2.len();i++){
-            concatenacion.append(lista2.getNodo(i));
+            concatenacion.append(lista2.getNodo(i+1));
         }   
     }
     else if(lista1.len()>0){
@@ -288,12 +285,12 @@ Nodo nodoMenorDistancia(Nodo actual, ListaNodos dominio, double *distPtr){
     Nodo menorNodo;
     double distancia = 0.0;
     for(unsigned int i=0; i<dominio.len();i++){
-        if(actual.ID == dominio.getNodo(i).ID && actual.tipo == dominio.getNodo(i).tipo) continue;
-        distancia = calcularDistancia(dominio.getNodo(i),actual);
+        if(actual.ID == dominio.getNodo(i+1).ID && actual.tipo == dominio.getNodo(i+1).tipo) continue;
+        distancia = calcularDistancia(dominio.getNodo(i+1),actual);
         if(distancia<menor){
             menor = distancia;
             *distPtr = distancia;
-            menorNodo = dominio.getNodo(i);
+            menorNodo = dominio.getNodo(i+1);
         }      
     }
     return menorNodo;

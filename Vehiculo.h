@@ -235,7 +235,6 @@ Vehiculo ListaVehiculos::getVehiculo(unsigned int pos){
     Vehiculo vehiAux;
     if(pos>=listSize) return vehiAux;
     moveToStart();
-    next();
     for(unsigned int i = 0;i<pos;i++){
         next();
     }
@@ -250,7 +249,6 @@ unsigned int ListaVehiculos::len(){return listSize;}
 void ListaVehiculos::goToPos(unsigned int pos){
     moveToStart();
     if(pos>=listSize) return;
-    next();
     for(unsigned int i=0;i<pos;i++){
         next();
     }
@@ -265,7 +263,7 @@ double ListaVehiculos::calcularDistTotal(){
     double distancia = 0.0;
     if(listSize < 1) return distancia;
     for(unsigned int i = 0; i<listSize;i++){
-        distancia += getVehiculo(i).distanciaTotalRecorrida;
+        distancia += getVehiculo(i+1).distanciaTotalRecorrida;
     }
     return distancia;
 }
@@ -282,6 +280,7 @@ class Variable{
         Nodo nodoAsignado;
         Vehiculo vehiculo;
         ListaNodos dominio;
+        static int id_actual;
 
         Variable();
         Variable(ListaNodos clientes, ListaNodos estaciones, Nodo depot);
@@ -296,16 +295,14 @@ class Variable{
 };
 
 Variable::Variable(){
-    srand (time(NULL));
-    ID = rand() % 99999999 + 1;
+    ID = id_actual++;
     nodoAsignado = Nodo();
     vehiculo = Vehiculo();
     dominio = ListaNodos();
 }
 
 Variable::Variable(ListaNodos clientes, ListaNodos estaciones, Nodo depot){
-    srand (time(NULL));
-    ID = rand() % 99999999 + 1;
+    id_actual++;
     nodoAsignado = Nodo();
     vehiculo = Vehiculo();
     dominio = concatenar(clientes,estaciones);
@@ -346,8 +343,8 @@ ListaNodos Variable::dominioSoloClientes(){
     ListaNodos domCli = ListaNodos();
     if(dominio.len()<1) return domCli;
     for(unsigned int i=0;i<dominio.len();i++){
-        if(dominio.getNodo(i).tipo=='c'){
-            domCli.append(dominio.getNodo(i));
+        if(dominio.getNodo(i+1).tipo=='c'){
+            domCli.append(dominio.getNodo(i+1));
         }
     }
     return domCli;
@@ -392,7 +389,7 @@ class ListaVariables{
         ListaVehiculos extraerSolucionActual();
         void printNodos();
         int find(Variable var);
-        Vehiculo rutaActual(Variable var, double velocidad, double distancia, 
+        Vehiculo rutaActual(Variable var, double velocidad, 
                             int tiempoServicio, int tiempoRecarga);
 };
 
@@ -492,9 +489,8 @@ Variable ListaVariables::getCurr(){
 
 Variable ListaVariables::getVariable(unsigned int pos){
     Variable varAux;
-    if(pos>=listSize) return varAux;
+    if(pos>listSize) return varAux;
     moveToStart();
-    next();
     for(unsigned int i = 0;i<pos;i++){
         next();
     }
@@ -508,8 +504,7 @@ unsigned int ListaVariables::len(){return listSize;}
 
 void ListaVariables::goToPos(unsigned int pos){
     moveToStart();
-    if(pos>=listSize) return;
-    next();
+    if(pos>listSize) return;
     for(unsigned int i=0;i<pos;i++){
         next();
     }
@@ -526,7 +521,7 @@ ListaNodos ListaVariables::clientesVisitados(){
         return clientes;
     }
     for(unsigned int i = 0;i<listSize;i++){
-        clientes.append(getVariable(i).nodoAsignado);
+        clientes.append(getVariable(i+1).nodoAsignado);
     }
     return clientes;
 }
@@ -538,7 +533,7 @@ ListaVehiculos ListaVariables::extraerSolucionActual(){
     Vehiculo vehiAux;
     int contadorDepots = 0;
     for(unsigned int i = 0; i<listSize;i++){
-        varAux = getVariable(i);
+        varAux = getVariable(i+1);
         if(varAux.nodoAsignado.tipo=='d'){
             contadorDepots++;
             if(i==0){
@@ -566,44 +561,100 @@ ListaVehiculos ListaVariables::extraerSolucionActual(){
 
 void ListaVariables::printNodos(){
     Variable varAux;
-    for(unsigned int i;i<listSize;i++){
-        varAux = getVariable(i);
+    for(unsigned int i=0;i<listSize;i++){
+        varAux = getVariable(i+1);
         cout << varAux.nodoAsignado.ID << varAux.nodoAsignado.tipo << "-";
     }
     cout << "\n";
 }
 
-Vehiculo ListaVariables::rutaActual(Variable var, double velocidad, double distancia, 
+Vehiculo ListaVariables::rutaActual(Variable var, double velocidad, 
                             int tiempoServicio, int tiempoRecarga){
+
     Vehiculo vehi = Vehiculo();
+    double dist = 0.0;
+    Nodo nodoAux;
+    Variable siguiente;
+    Variable anterior;
     int pos = find(var);
+    //cout<<pos<<"\n";
     if(pos!=-1)goToPos(abs(pos));
     else{ 
         return vehi;
     }
+
+
     if(getCurr().nodoAsignado.tipo=='d'){
-        //FALTA AVANZAR AQUI, PARA PODER CALCULAR RUTAS DE VEHICULOS QUE EN
-        //ESTOS MOMENTOS NO SE LES HACE SEGUIMIENTO EN TIEMPO REAL
+        //si estamos en un depot debemos determinar si hay que avanzar o retroceder
+        
+        siguiente = getVariable(pos+1);
+        goToPos(abs(pos));
+        anterior = getVariable(pos-1);
+        goToPos(abs(pos));
+
+        if((pos==listSize || siguiente.nodoAsignado.tipo=='d') && getPos() > 1){
+             //Retroceder hasta llegar a un depot 
+            
+            prev();
+            while(getCurr().nodoAsignado.tipo!='d'){
+                //Retroceder hasta llegar a un depot
+                nodoAux = getCurr().nodoAsignado;
+                prev();
+            }
+            //agregar depot
+            dist = calcularDistancia(nodoAux,getCurr().nodoAsignado);
+            vehi.agregarParada(getCurr().nodoAsignado,0.0,0.0,0,0);
+            do{//avanzar hasta llegar a un depot y agregarlo
+                nodoAux = getCurr().nodoAsignado;
+                next();
+                dist = calcularDistancia(nodoAux,getCurr().nodoAsignado);
+                vehi.agregarParada(getCurr().nodoAsignado,velocidad,dist,
+                                                tiempoServicio,tiempoRecarga);
+            }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len()  );             
+        }
+        else if(getPos()==1 || anterior.nodoAsignado.tipo=='d'){
+            //cout<<"HOLA\n";
+            vehi.agregarParada(getCurr().nodoAsignado,0.0,0.0,0,0); 
+            do{//avanzar agregando paradas
+                nodoAux = getCurr().nodoAsignado;
+                next();
+                dist = calcularDistancia(nodoAux,getCurr().nodoAsignado);
+                vehi.agregarParada(getCurr().nodoAsignado,velocidad,dist,
+                                                tiempoServicio,tiempoRecarga);                    
+            }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len() );  
+            
+        }
+        
     }
     else{
         while(getCurr().nodoAsignado.tipo!='d'){
+            //Retroceder hasta llegar a un depot
+            nodoAux = getCurr().nodoAsignado;
             prev();
         }
+        
+        //agregar depot
+        dist = calcularDistancia(nodoAux,getCurr().nodoAsignado);
         vehi.agregarParada(getCurr().nodoAsignado,0.0,0.0,0,0);
-        do{
-            vehi.agregarParada(getCurr().nodoAsignado,velocidad,distancia,
+        do{//avanzar hasta llegar a un depot y agregarlo
+            nodoAux = getCurr().nodoAsignado;
+            next();
+            dist = calcularDistancia(nodoAux,getCurr().nodoAsignado);
+            vehi.agregarParada(getCurr().nodoAsignado,velocidad,dist,
                                             tiempoServicio,tiempoRecarga);
-        }while(getCurr().nodoAsignado.tipo!='d');
+            
+        }while(getCurr().nodoAsignado.tipo!='d' && getPos()!=len() );
     }
+
     return vehi;
 }
 
 
 int ListaVariables::find(Variable var){
-    if(listSize==0) return -1;
-    for(unsigned int i=0;i<listSize;i++){
-        if(var.ID == getVariable(i).ID){
-            return i;
+    if(len()==0) return -1;
+    for(unsigned int i=0;i<len();i++){
+        if(var.ID == getVariable(i+1).ID){
+            return i+1;
         }
     }
     return -1;
@@ -624,7 +675,7 @@ void ListaVariables::agregarVehiculo(Vehiculo vehi){
     Variable varAux = Variable();
     Vehiculo vehiAux = Vehiculo();
     for(unsigned int i=0;i<listSize;i++){
-        varAux = getVariable(i);
+        varAux = getVariable(i+1);
         //cout << varAux.nodoAsignado.ID<<"\n";
         //Los vehiculos se repiten entre variables, por lo tanto
         //se debe buscar los vehiculos distintos que hayan en la solucion
