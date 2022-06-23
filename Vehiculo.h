@@ -1,7 +1,6 @@
 #include <iostream>
-#include "Nodo.h"
 #include <stdlib.h>
-#include <time.h>
+#include "Nodo.h"
 
 using namespace std;
 
@@ -15,6 +14,7 @@ class Vehiculo{
         double distanciaTotalRecorrida;
         double distanciaDesdeRecarga;
         unsigned int cantClientesVisitados;
+        static int id_actual;
 
         Vehiculo();
         Vehiculo(Nodo depot);
@@ -25,8 +25,7 @@ class Vehiculo{
 };
 
 Vehiculo::Vehiculo(){
-    srand (time(NULL));
-    ID = rand() % 99999999 + 1;
+    ID = id_actual++;
     tiempoTranscurrido = 0;
     distanciaTotalRecorrida = 0.0;
     distanciaDesdeRecarga = 0.0;
@@ -34,8 +33,7 @@ Vehiculo::Vehiculo(){
 }
 
 Vehiculo::Vehiculo(Nodo depot){
-    srand (time(NULL));
-    ID = rand() % 99999999 + 1;
+    ID = id_actual++;
     tiempoTranscurrido = 0;
     distanciaTotalRecorrida = 0.0;
     distanciaDesdeRecarga = 0.0;
@@ -234,10 +232,7 @@ Vehiculo ListaVehiculos::getVehiculo(unsigned int pos){
     //El head es posicion -1, el siguiente es posicion 0
     Vehiculo vehiAux;
     if(pos>=listSize) return vehiAux;
-    moveToStart();
-    for(unsigned int i = 0;i<pos;i++){
-        next();
-    }
+    goToPos(pos);
     vehiAux = curr->data;
     return vehiAux;
 }
@@ -278,7 +273,6 @@ class Variable{
     public:
         int ID;
         Nodo nodoAsignado;
-        Vehiculo vehiculo;
         ListaNodos dominio;
         static int id_actual;
 
@@ -288,7 +282,6 @@ class Variable{
         void eliminarNodosMasLejosDepot(double distancia);
         void resetearDominio(ListaNodos clientes, ListaNodos estaciones, Nodo depot);
         void quitarDelDominio(Nodo node);
-        void asignarVehiculo(Vehiculo vehi);
         bool dominioVacio();
         void asignarNodo(Nodo node);
         ListaNodos dominioSoloClientes();
@@ -297,14 +290,12 @@ class Variable{
 Variable::Variable(){
     ID = id_actual++;
     nodoAsignado = Nodo();
-    vehiculo = Vehiculo();
     dominio = ListaNodos();
 }
 
 Variable::Variable(ListaNodos clientes, ListaNodos estaciones, Nodo depot){
-    id_actual++;
+    ID = id_actual++;
     nodoAsignado = Nodo();
-    vehiculo = Vehiculo();
     dominio = concatenar(clientes,estaciones);
     dominio.append(depot);
 }
@@ -322,9 +313,6 @@ void Variable::quitarDelDominio(Nodo node){
     }
 }
 
-void Variable::asignarVehiculo(Vehiculo vehi){
-    vehiculo = vehi;
-}
 
 bool Variable::dominioVacio(){
     if(dominio.len()>0) return false;
@@ -363,7 +351,6 @@ class ListaVariables{
     unsigned int listSize;
     unsigned int pos;
     //ListaVehiculos vehiculosEnUso;
-    
 
     public:
         ListaVehiculos mejorSolucion;
@@ -389,7 +376,7 @@ class ListaVariables{
         ListaVehiculos extraerSolucionActual();
         void printNodos();
         int find(Variable var);
-        Vehiculo rutaActual(Variable var, double velocidad, 
+        Vehiculo recorridoDeVariable(Variable var, double velocidad, 
                             int tiempoServicio, int tiempoRecarga);
 };
 
@@ -412,12 +399,7 @@ void ListaVariables::insertInFront(Variable item){
 
 void ListaVariables::append(Variable var){
     moveToEnd();
-    Variable aux = Variable();
-    aux.ID = var.ID;
-    aux.nodoAsignado = var.nodoAsignado;
-    aux.vehiculo = var.vehiculo;
-    aux.dominio = var.dominio;
-    insertInFront(aux);
+    insertInFront(var);
     moveToStart();
 }
 
@@ -490,10 +472,7 @@ Variable ListaVariables::getCurr(){
 Variable ListaVariables::getVariable(unsigned int pos){
     Variable varAux;
     if(pos>listSize) return varAux;
-    moveToStart();
-    for(unsigned int i = 0;i<pos;i++){
-        next();
-    }
+    goToPos(pos);
     varAux = curr->data;
     return varAux;
 }
@@ -568,7 +547,7 @@ void ListaVariables::printNodos(){
     cout << "\n";
 }
 
-Vehiculo ListaVariables::rutaActual(Variable var, double velocidad, 
+Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, 
                             int tiempoServicio, int tiempoRecarga){
 
     Vehiculo vehi = Vehiculo();
@@ -577,12 +556,10 @@ Vehiculo ListaVariables::rutaActual(Variable var, double velocidad,
     Variable siguiente;
     Variable anterior;
     int pos = find(var);
-    //cout<<pos<<"\n";
     if(pos!=-1)goToPos(abs(pos));
     else{ 
         return vehi;
     }
-
 
     if(getCurr().nodoAsignado.tipo=='d'){
         //si estamos en un depot debemos determinar si hay que avanzar o retroceder
@@ -613,7 +590,6 @@ Vehiculo ListaVariables::rutaActual(Variable var, double velocidad,
             }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len()  );             
         }
         else if(getPos()==1 || anterior.nodoAsignado.tipo=='d'){
-            //cout<<"HOLA\n";
             vehi.agregarParada(getCurr().nodoAsignado,0.0,0.0,0,0); 
             do{//avanzar agregando paradas
                 nodoAux = getCurr().nodoAsignado;
@@ -622,7 +598,7 @@ Vehiculo ListaVariables::rutaActual(Variable var, double velocidad,
                 vehi.agregarParada(getCurr().nodoAsignado,velocidad,dist,
                                                 tiempoServicio,tiempoRecarga);                    
             }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len() );  
-            
+     
         }
         
     }
@@ -676,22 +652,18 @@ void ListaVariables::agregarVehiculo(Vehiculo vehi){
     Vehiculo vehiAux = Vehiculo();
     for(unsigned int i=0;i<listSize;i++){
         varAux = getVariable(i+1);
-        //cout << varAux.nodoAsignado.ID<<"\n";
         //Los vehiculos se repiten entre variables, por lo tanto
         //se debe buscar los vehiculos distintos que hayan en la solucion
         if(varAux.vehiculo.ID != sol.getCurr().ID){
             if(vehiAux.recorrido.len() > 0) sol.append(vehiAux);
             vehiAux = varAux.vehiculo;
             vehiAux.recorrido.append(varAux.nodoAsignado);
-            //cout << varAux.nodoAsignado.ID<<"\n";
         }
         else{
             vehiAux.recorrido.append(varAux.nodoAsignado);
-            //cout << varAux.nodoAsignado.ID<<"\n";
         }        
     }
     if(vehiAux.recorrido.len() > 0) sol.append(vehiAux);
     
     for(unsigned int i=0;i<sol.len();i++){
-            cout << sol.getVehiculo(i).recorrido.to_string()<<"\n";;
         }*/

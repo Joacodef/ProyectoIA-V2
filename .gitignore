@@ -1,5 +1,6 @@
-.exe
+*.exe
 main
 *.dat
 *.out
 test.cpp
+*.code-workspace

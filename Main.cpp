@@ -7,6 +7,7 @@
 using namespace std;
 
 int Variable::id_actual = 1;
+int Vehiculo::id_actual = 1;
 
 int main() {
     //time_t start, end;
@@ -30,18 +31,14 @@ int main() {
             
             inst = extraerArchivo(&nodos,nombreArchivo);
 
-            depot = nodos.getNodo(0);
+            depot = nodos.getNodo(1);
 
-            for(int i=1;i<inst.numEstaciones;i++){
-                estaciones.append(nodos.getNodo(i+1));                
+            for(int i=0;i<inst.numEstaciones;i++){
+                estaciones.append(nodos.getNodo(i+2));                
             }
-            for(int i=1;i<inst.numClientes+1;i++){
-                clientes.append(nodos.getNodo(i+inst.numEstaciones));                
+            for(int i=0;i<inst.numClientes;i++){
+                clientes.append(nodos.getNodo(i+inst.numEstaciones+2));                
             }
-
-            //cout << depot.tipo <<"\n";
-            //cout << estaciones.to_string()<<"\n";
-            //cout << clientes.to_string()<<"\n";
 
             //time(&start);
 
@@ -52,10 +49,6 @@ int main() {
 
             //generarOutput(vehiculos,nombreArchivo,tiempoEjecucion);
 
-            for(unsigned int i=0;i<vehiculos.len();i++){
-                cout << vehiculos.getVehiculo(i+1).recorrido.to_string()<<"\n";
-            }
-            cout << "\n";
             estaciones.free();
             clientes.free();
             nodos.free();

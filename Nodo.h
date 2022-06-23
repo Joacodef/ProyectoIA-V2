@@ -1,5 +1,7 @@
 #include <iostream>
+#include <cmath>
 #define RADIO_TIERRA 4182.44949
+#define MY_PI 3.14159265358979323846
 
 using namespace std;
 
@@ -156,10 +158,7 @@ void ListaNodos::clear(){
 Nodo ListaNodos::getNodo(unsigned int pos){
     Nodo nodoAux;
     if(pos>listSize) return nodoAux;
-    moveToStart();
-    for(unsigned int i = 0;i<=pos;i++){
-        next();
-    }
+    goToPos(pos);
     nodoAux = curr->data;
     return nodoAux;
 }
@@ -247,7 +246,7 @@ bool nodosIguales(Nodo nodo1, Nodo nodo2){
 
 double aRadianes(double num){
     double rad = 0.0;
-    rad = M_PI * (num/180.0);
+    rad = MY_PI * (num/180.0);
     return rad;
 }
 
