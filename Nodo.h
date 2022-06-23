@@ -6,7 +6,21 @@
 
 using namespace std;
 
-//Clases y métodos relativas a los NODOS:
+/**********
+ * 
+Clase Nodo:
+
+Representa los clientes, estaciones de recarga y el depósito. Guarda información
+toda la información sobre ellos que se obtiene desde los archivos de instancia:
+su ID, tipo y coodenadas. 
+
+Otros atributos y métodos:
+next (Nodo*) - se utiliza en las listas enlazadas de nodos para apuntar al siguiente.
+
+mostrar() (void) - se utiliza para imprimir en pantalla la información del nodo.
+*
+*
+**************/
 
 class Nodo{
     public:
@@ -20,27 +34,20 @@ class Nodo{
         void mostrar();   
 };
 
-Nodo::Nodo(){
-    ID = -1;
-    tipo = '\0';
-    longitud = 0.0;
-    latitud = 0.0;
-    //restringidoTemp = false;
-}
 
-void Nodo::mostrar(){
-    cout << "\nID: " << ID;
-    cout << "\nTipo: " << tipo;
-    cout << "\nLongitud: " << longitud;
-    cout << "\nLatitud: " << latitud << "\n";
-}
+/**********
+ * 
+Clase ListaNodos:
 
-typedef struct tPaso{
-    Nodo data;
-    struct tPaso *next;
-} tPaso;
+Guarda en una lista enlaz
 
-//ListaNodos es una lista enlazada
+Otros atributos y métodos:
+next (Nodo*) - se utiliza en las listas enlazadas de nodos para apuntar al siguiente.
+
+mostrar() (void) - se utiliza para imprimir en pantalla la información del nodo.
+*
+*
+**************/
 
 class ListaNodos{
     tPaso *head;
@@ -70,6 +77,32 @@ class ListaNodos{
         void free();
         string to_string();
 };
+
+
+//******** Implementación de métodos de la clase Nodo ************
+
+Nodo::Nodo(){
+    ID = -1;
+    tipo = '\0';
+    longitud = 0.0;
+    latitud = 0.0;
+    //restringidoTemp = false;
+}
+
+void Nodo::mostrar(){
+    cout << "\nID: " << ID;
+    cout << "\nTipo: " << tipo;
+    cout << "\nLongitud: " << longitud;
+    cout << "\nLatitud: " << latitud << "\n";
+}
+
+
+//******** Implementación de métodos de la clase ListaNodos ************
+
+typedef struct tPaso{
+    Nodo data;
+    struct tPaso *next;
+} tPaso;
 
 ListaNodos::ListaNodos(){
     head = tail = curr = (tPaso*)malloc(sizeof(tPaso)); // Siempre es la cabecera
