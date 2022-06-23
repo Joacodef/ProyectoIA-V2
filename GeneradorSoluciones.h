@@ -1,4 +1,7 @@
 #include "ArchivosIO.h"
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 
 using namespace std;
 

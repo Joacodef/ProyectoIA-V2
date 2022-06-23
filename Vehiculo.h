@@ -1,4 +1,7 @@
 #include "Nodo.h"
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -197,9 +200,8 @@ void ListaVehiculos::clear(){
 }
 
 Vehiculo ListaVehiculos::getVehiculo(unsigned int pos){
-    //El head es posicion -1, el siguiente es posicion 0
     Vehiculo vehiAux;
-    if(pos>=listSize) return vehiAux;
+    if(pos>listSize) return vehiAux;
     goToPos(pos);
     vehiAux = curr->data;
     return vehiAux;
@@ -211,7 +213,7 @@ unsigned int ListaVehiculos::len(){return listSize;}
 
 void ListaVehiculos::goToPos(unsigned int pos){
     moveToStart();
-    if(pos>=listSize) return;
+    if(pos>listSize) return;
     for(unsigned int i=0;i<pos;i++){
         next();
     }

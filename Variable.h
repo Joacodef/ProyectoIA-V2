@@ -1,4 +1,7 @@
 #include "Vehiculo.h"
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -240,12 +243,15 @@ ListaVehiculos ListaVariables::extraerSolucionActual(double velocidad, int tiemp
     Vehiculo vehiAux;
     moveToStart();
     unsigned int largo = 0;
+    unsigned int posAux = 0;
+    next();
 
-    while(getPos()<len()){
-        next();
+    while(posAux+largo<len()){
+        posAux = getPos();
         vehiAux = recorridoDeVariable(getCurr(), velocidad, tiempoServicio, tiempoRecarga);
+        sol.append(vehiAux);
         largo = vehiAux.recorrido.len();
-        goToPos(largo+1);
+        goToPos(posAux+largo);
     }
     return sol;
 }
@@ -288,12 +294,14 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
             //agregar depot
             vehi.agregarParada(getCurr().nodoAsignado);
             do{//avanzar hasta llegar a un depot y agregarlo
+                next();
                 vehi.agregarParada(getCurr().nodoAsignado);
             }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len()  );             
         }
         else if(getPos()==1 || anterior.nodoAsignado.tipo=='d'){
             vehi.agregarParada(getCurr().nodoAsignado); 
             do{//avanzar agregando paradas
+                next();
                 vehi.agregarParada(getCurr().nodoAsignado);                    
             }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len() );  
         }
@@ -306,6 +314,7 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
         //agregar depot
         vehi.agregarParada(getCurr().nodoAsignado);
         do{//avanzar hasta llegar a un depot y agregarlo
+            next();
             vehi.agregarParada(getCurr().nodoAsignado);            
         }while(getCurr().nodoAsignado.tipo!='d' && getPos()!=len() );
     }
