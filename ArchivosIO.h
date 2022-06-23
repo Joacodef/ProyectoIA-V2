@@ -68,10 +68,10 @@ void generarOutput(ListaVehiculos vehiculos,string nombreArchivo, Instancia *ins
     vehiculos.next();
 
     for(unsigned int i = 0; i < vehiculos.len(); i++){
-        sumaDistancias += vehiculos.getVehiculo(i+1).distanciaTotalRecorrida;
+        sumaDistancias += vehiculos.getVehiculo(i+1).distanciaTotalRecorrida();
         sumaClientes += vehiculos.getVehiculo(i+1).cantClientesVisitados;
-        if(vehiculos.getVehiculo(i+1).distanciaTotalRecorrida > inst->maxDistancia){
-            distanciasExcedidas[i] = vehiculos.getVehiculo(i+1).distanciaTotalRecorrida - inst->maxDistancia;
+        if(vehiculos.getVehiculo(i+1).distanciaTotalRecorrida() > inst->maxDistancia){
+            distanciasExcedidas[i] = vehiculos.getVehiculo(i+1).distanciaTotalRecorrida() - inst->maxDistancia;
         }
         else{
             distanciasExcedidas[i] = 0.0;
@@ -89,8 +89,8 @@ void generarOutput(ListaVehiculos vehiculos,string nombreArchivo, Instancia *ins
     output << tiempoEjecucion <<"\n";
     for(unsigned int i = 0; i < vehiculos.len(); i++){ 
         output << std::setprecision(6);
-        output << vehiculos.getVehiculo(i+1).recorrido.to_string() << "     " << vehiculos.getVehiculo(i+1).distanciaTotalRecorrida << "    " 
-                    << vehiculos.getVehiculo(i+1).tiempoTranscurrido << "     ";
+        output << vehiculos.getVehiculo(i+1).recorrido.to_string() << "     " << vehiculos.getVehiculo(i+1).distanciaTotalRecorrida() << "    " 
+                    << vehiculos.getVehiculo(i+1).tiempoTranscurrido() << "     ";
         output << std::setprecision(2);
         output << distanciasExcedidas[i] <<"\n";
         vehiculos.next();

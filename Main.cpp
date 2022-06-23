@@ -44,9 +44,10 @@ int main() {
 
             ListaVehiculos vehiculos = generarSoluciones(10,inst,clientes,estaciones,depot);
             
+            vehiculos.mostrar();
             //time(&end);
             //tiempoEjecucion = double(end-start)/ double(CLOCKS_PER_SEC);
-
+            
             //generarOutput(vehiculos,nombreArchivo,tiempoEjecucion);
 
             estaciones.free();

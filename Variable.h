@@ -104,9 +104,9 @@ class ListaVariables{
         ListaNodos clientesVisitados();
         //void agregarVehiculo(Vehiculo vehi);
         Variable getVariable(unsigned int pos);
-        ListaVehiculos extraerSolucionActual();
         void printNodos();
         int find(Variable var);
+        ListaVehiculos extraerSolucionActual(double velocidad, int tiempoRecarga, int tiempoServicio);
         Vehiculo recorridoDeVariable(Variable var, double velocidad, 
                             int tiempoServicio, int tiempoRecarga);
 };
@@ -235,36 +235,18 @@ ListaNodos ListaVariables::clientesVisitados(){
     return clientes;
 }
 
-ListaVehiculos ListaVariables::extraerSolucionActual(){
+ListaVehiculos ListaVariables::extraerSolucionActual(double velocidad, int tiempoServicio,int tiempoRecarga){
     ListaVehiculos sol = ListaVehiculos();
-    moveToStart();
-    Variable varAux;
     Vehiculo vehiAux;
-    int contadorDepots = 0;
-    for(unsigned int i = 0; i<listSize;i++){
-        varAux = getVariable(i+1);
-        if(varAux.nodoAsignado.tipo=='d'){
-            contadorDepots++;
-            if(i==0){
-                vehiAux = Vehiculo();
-                vehiAux.recorrido.append(varAux.nodoAsignado);
-            }
-            else if(contadorDepots == 2){
-                vehiAux.recorrido.append(varAux.nodoAsignado);
-                sol.append(vehiAux);
-                contadorDepots = 0;
-                vehiAux = Vehiculo();
-            }
-            else{
-                vehiAux.recorrido.append(varAux.nodoAsignado);
-            }
-        }
-        else{
-            vehiAux.recorrido.append(varAux.nodoAsignado);
-        }
+    moveToStart();
+    unsigned int largo = 0;
 
+    while(getPos()<len()){
+        next();
+        vehiAux = recorridoDeVariable(getCurr(), velocidad, tiempoServicio, tiempoRecarga);
+        largo = vehiAux.recorrido.len();
+        goToPos(largo+1);
     }
-    if(vehiAux.recorrido.len()!=0) sol.append(vehiAux);
     return sol;
 }
 
@@ -279,8 +261,7 @@ void ListaVariables::printNodos(){
 
 Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int tiempoServicio, int tiempoRecarga){
     double dist = 0.0;
-    Vehiculo vehi;
-    Nodo nodoAux = Nodo();
+    Vehiculo vehi = Vehiculo(velocidad, tiempoServicio, tiempoRecarga);
     Variable siguiente;
     Variable anterior;
     int pos = find(var);
@@ -299,57 +280,35 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
 
         if((pos==listSize || siguiente.nodoAsignado.tipo=='d') && getPos() > 1){
              //Retroceder hasta llegar a un depot 
-            
             prev();
             while(getCurr().nodoAsignado.tipo!='d'){
                 //Retroceder hasta llegar a un depot
-                nodoAux = getCurr().nodoAsignado;
                 prev();
             }
             //agregar depot
-            dist = calcularDistancia(nodoAux,getCurr().nodoAsignado);
-            vehi.agregarParada(getCurr().nodoAsignado,0.0,0.0,0,0);
+            vehi.agregarParada(getCurr().nodoAsignado);
             do{//avanzar hasta llegar a un depot y agregarlo
-                nodoAux = getCurr().nodoAsignado;
-                next();
-                dist = calcularDistancia(nodoAux,getCurr().nodoAsignado);
-                vehi.agregarParada(getCurr().nodoAsignado,velocidad,dist,
-                                                tiempoServicio,tiempoRecarga);
+                vehi.agregarParada(getCurr().nodoAsignado);
             }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len()  );             
         }
         else if(getPos()==1 || anterior.nodoAsignado.tipo=='d'){
-            vehi.agregarParada(getCurr().nodoAsignado,0.0,0.0,0,0); 
+            vehi.agregarParada(getCurr().nodoAsignado); 
             do{//avanzar agregando paradas
-                nodoAux = getCurr().nodoAsignado;
-                next();
-                dist = calcularDistancia(nodoAux,getCurr().nodoAsignado);
-                vehi.agregarParada(getCurr().nodoAsignado,velocidad,dist,
-                                                tiempoServicio,tiempoRecarga);                    
+                vehi.agregarParada(getCurr().nodoAsignado);                    
             }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len() );  
-     
         }
-        
     }
     else{
         while(getCurr().nodoAsignado.tipo!='d'){
             //Retroceder hasta llegar a un depot
-            nodoAux=getCurr().nodoAsignado;
             prev();
         }
-        
         //agregar depot
-        dist = calcularDistancia(nodoAux,getCurr().nodoAsignado);
-        vehi.agregarParada(getCurr().nodoAsignado,0.0,0.0,0,0);
+        vehi.agregarParada(getCurr().nodoAsignado);
         do{//avanzar hasta llegar a un depot y agregarlo
-            nodoAux = getCurr().nodoAsignado;
-            next();
-            dist = calcularDistancia(nodoAux,getCurr().nodoAsignado);
-            vehi.agregarParada(getCurr().nodoAsignado,velocidad,dist,
-                                            tiempoServicio,tiempoRecarga);
-            
+            vehi.agregarParada(getCurr().nodoAsignado);            
         }while(getCurr().nodoAsignado.tipo!='d' && getPos()!=len() );
     }
-
     return vehi;
 }
 

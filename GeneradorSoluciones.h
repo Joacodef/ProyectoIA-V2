@@ -9,14 +9,14 @@ bool verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisitad
     bool cumple = true;
     //cout << vehiculoDelNodo.distanciaDesdeRecarga<<"\n";
     //Verificar si se tiene combustible para llegar al nodo asignado:
-    if(vehiculoDelNodo.distanciaDesdeRecarga>inst.maxDistancia){
+    if(vehiculoDelNodo.distanciaDesdeRecarga()>inst.maxDistancia){
         //Agregar cosas para quitar del dominio a otros clientes
         return false;
     }
     //Verificar si se tiene tiempo para volver al depósito:
     double distanciaDeposito = calcularDistancia(nodoAsignado,depot);
     double tiempoAlDepot = distanciaDeposito/inst.velocidad;
-    if(vehiculoDelNodo.tiempoTranscurrido+tiempoAlDepot > inst.maxTiempo){
+    if(vehiculoDelNodo.tiempoTranscurrido()+tiempoAlDepot > inst.maxTiempo){
         //Agregar cosas para descartar nodos que esten mas lejos del depot que el actual
         return false;
     }
@@ -38,7 +38,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
     ListaVariables variables;
     Nodo nodoAux;
     Variable variableActual;
-    Vehiculo vehiAux;
+    Vehiculo vehiAux = Vehiculo(inst.velocidad, inst.tiempoServicio, inst.tiempoRecarga);
     double distancia = 0.0;
     bool backtracking = false;
     bool variableSeAsigno = false;
@@ -74,7 +74,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         //Se comprueba si se han visitado todos los clientes 
         if(variables.clientesVisitados().len()>=abs(inst.numClientes)){
             //(Por ahora se detiene con la primera solucion encontrada)
-            return variables.extraerSolucionActual(); 
+            return variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga); 
         }
         variableSeAsigno = false;
         //Se comprueba si estamos entrando al loop por backtracking o no
@@ -83,6 +83,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             variableActual = Variable(clientes,estaciones);
             if(contadorIter == 0){
                 //Si es la primera iteración, se asigna el depot de la instancia a la variable actual.
+                //variableActual = Variable(clientes,estaciones);
                 variableActual.asignarNodo(depot);
                 variables.append(variableActual);
                 contadorIter++;
@@ -96,20 +97,28 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         }
 
         //Se verifica si el recorrido actual ya terminó, en cuyo caso se debe asignar un depot a la nueva variable
-        if(!vehiAux.terminoRecorrido()){
+        if(vehiAux.recorridoTerminado()){
+            //variableActual = Variable(clientes,estaciones);
             variableActual.asignarNodo(depot);
             variables.append(variableActual);
         }
         else{
             //Se buscan asignaciones factibles para la nueva variable en un loop. Si el dominio esta vacío o se encontró
-            //la asignación, se termina el loop, habiando asignado la variable.
+            //la asignación, se termina el loop, habiendo asignado la variable.
             while(!variableSeAsigno && !variableActual.dominioVacio()){
-                //Se verifica si a la variable no se le puede asignar ningun cliente, para que busque cualquier nodo cercano
+                //Se verifica si a la variable no se le puede asignar ningun cliente, para que busque cualquier nodo cercano (estaciones de recarga)
                 if(variableActual.dominioSoloClientes().len() < 1){
                     nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominioSoloClientes(),&distancia);
+                    if(verificarRestricciones(vehiAux,variables.clientesVisitados(),nodoAux,inst,depot)){
+                        //Si las cumple, se asigna el cliente a la variable
+                        variableActual.asignarNodo(nodoAux);
+                        variables.append(variableActual); 
+                        variables.moveToEnd();
+                        variableSeAsigno = true;
+                    }
                 }
                 else{
-                    //Si todavía hay clientes, se busca el más cercano dentro del dominio:
+                    //Si todavía hay clientes, se busca busca solo dentro de los clientes el mas cercano
                     nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominioSoloClientes(),&distancia);
                     variables.moveToEnd();
                     //Se verifica si el cliente a asignar cumple las restricciones
@@ -127,20 +136,16 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 } 
                 
             }
-            if(variableActual.dominioVacio()){
-                //cout << "REALIZANDO BACKTRACKING " << "\n";
+            if(variableActual.dominioVacio() && variableSeAsigno==false){
+                //Si el dominio de una variable queda vacío, sin haberle asignado un valor factible, significa que el vehiculo 
+                //no cumple ninguna restriccion y debe hacerse backtracking
                 backtracking = true;
-
-                variables.moveToEnd();
-                if(variables.getCurr().ID == variableActual.ID){
-                    variables.pop(); 
-                }
-
+                
+                //Se vuelve a la ultima variable que se había asignado, se le borra el nodo asignado y se quita ese nodo del dominio
                 variables.moveToEnd();
                 variableActual = variables.getCurr();
                 variableActual.quitarDelDominio(variableActual.nodoAsignado);
                 variableActual.nodoAsignado = Nodo();
-
             }
         }
         
@@ -148,7 +153,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
     }
 
     
-    /*if(variables.mejorSolucion.len() == 0)*/ return variables.extraerSolucionActual(); 
+    /*if(variables.mejorSolucion.len() == 0)*/ return variables.extraerSolucionActual(inst.velocidad, inst.tiempoServicio, inst.tiempoRecarga); 
     //return variables.mejorSolucion;
 }
 

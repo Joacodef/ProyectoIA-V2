@@ -8,101 +8,47 @@ class Vehiculo{
     public:
         int ID;
         ListaNodos recorrido;
-        int tiempoTranscurrido;
-        double distanciaTotalRecorrida;
-        double distanciaDesdeRecarga;
         unsigned int cantClientesVisitados;
+        double velocidad;
+        int tiempoServicio;
+        int tiempoRecarga;
         static int id_actual;
 
         Vehiculo();
+        Vehiculo(double vel, int tServicio, int tRecarga);
         Vehiculo(Nodo depot);
-        void agregarParada(Nodo nodo, double velocidad, double distancia, int tiempoServicio, int tiempoRecarga);
-        void quitarUltimaParada(int velocidad, int tiempoServicio, int tiempoRecarga);
-        void reiniciarRecorrido();
-        bool terminoRecorrido();
+        void agregarParada(Nodo nodo);
+        bool recorridoTerminado();
+        int tiempoTranscurrido();
+        double distanciaTotalRecorrida();
+        double distanciaDesdeRecarga();
 };
 
 Vehiculo::Vehiculo(){
     ID = id_actual++;
-    tiempoTranscurrido = 0;
-    distanciaTotalRecorrida = 0.0;
-    distanciaDesdeRecarga = 0.0;
     cantClientesVisitados = 0;
+}
+
+Vehiculo::Vehiculo(double vel, int tServicio, int tRecarga){
+    ID = id_actual++;
+    cantClientesVisitados = 0;
+    velocidad = vel;
+    tiempoServicio = tServicio;
+    tiempoRecarga = tRecarga;
 }
 
 Vehiculo::Vehiculo(Nodo depot){
     ID = id_actual++;
-    tiempoTranscurrido = 0;
-    distanciaTotalRecorrida = 0.0;
-    distanciaDesdeRecarga = 0.0;
     cantClientesVisitados = 0;
     recorrido.append(depot);
 }
 
-void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia, 
-                            int tiempoServicio, int tiempoRecarga){
+void Vehiculo::agregarParada(Nodo nodo){
     recorrido.append(nodo);
-    tiempoTranscurrido += distancia/velocidad;
-    distanciaTotalRecorrida += distancia;
-    distanciaDesdeRecarga += distancia;
-    if(nodo.tipo=='f') {
-        distanciaDesdeRecarga = 0.0;
-        tiempoTranscurrido += tiempoRecarga;
-    }
-    else if(nodo.tipo=='c'){
-        tiempoTranscurrido += tiempoServicio;
-        cantClientesVisitados++;
-    }
+    if(nodo.tipo=='c')cantClientesVisitados++;
 }
 
-void Vehiculo::quitarUltimaParada(int velocidad, int tiempoServicio, int tiempoRecarga){
-    if(recorrido.len()<=1) return; //no se puede quitar el depot
-    recorrido.moveToEnd();
-    Nodo nodoAux = recorrido.getCurr();
-    recorrido.prev();
-    double distancia = 0.0;
-
-    distancia = calcularDistancia(nodoAux, recorrido.getCurr());
-
-    tiempoTranscurrido -= distancia/velocidad;
-    distanciaTotalRecorrida -= distancia;
-    distanciaDesdeRecarga -= distancia;
-
-    recorrido.moveToEnd();
-
-    if(recorrido.getCurr().tipo=='f'){
-        //Se debe calcular la distancia que se había recorrido desde el depot u otra estacion
-        //antes de llegar a la estacion actual.
-        distancia = 0.0;
-        do{
-            nodoAux = recorrido.getCurr();
-            recorrido.prev();
-            distancia += calcularDistancia(nodoAux,recorrido.getCurr());
-
-        }while(recorrido.getCurr().tipo=='c');
-        tiempoTranscurrido -= tiempoRecarga;
-        distanciaDesdeRecarga -= distancia;
-    }
-    else if(recorrido.getCurr().tipo=='c'){
-        tiempoTranscurrido-=tiempoServicio;
-        cantClientesVisitados--;
-    }
-    else{
-        cout << "\nError, se está intentando quitar una parada del recorrido, pero no hay nodos para quitar.\n";
-        return;
-    }
-    recorrido.pop();
-}
-
-void Vehiculo::reiniciarRecorrido(){
-    tiempoTranscurrido = 0;
-    distanciaTotalRecorrida = 0.0;
-    distanciaDesdeRecarga = 0.0;
-    cantClientesVisitados = 0;
-    recorrido.clear();
-}
-
-bool Vehiculo::terminoRecorrido(){
+bool Vehiculo::recorridoTerminado(){
     if(recorrido.len() < 2) return false;
     recorrido.moveToEnd();
     Nodo nodoFinal = recorrido.getCurr();
@@ -112,11 +58,31 @@ bool Vehiculo::terminoRecorrido(){
     else return false;
 }
 
+int Vehiculo::tiempoTranscurrido(){
+    int tiempo = 0;
+    recorrido.moveToStart();
+
+    return tiempo;
+}
+
+//IMPLEMENTAR ESTAS FUNCIONES
+
+
+double Vehiculo::distanciaTotalRecorrida(){
+    double distancia = 0.0;
+    return distancia;
+}
+
+double Vehiculo::distanciaDesdeRecarga(){
+    double distancia = 0.0;
+    return distancia;
+}
+
+
 typedef struct tVehi{
     Vehiculo data;
     struct tVehi *next;
 } tVehi;
-
 
 //ListaVehiculos tambien es una lista enlazada
 
@@ -145,6 +111,7 @@ class ListaVehiculos{
         void free();
         double calcularDistTotal();
         Vehiculo getCurr();
+        void mostrar();
 };
 
 ListaVehiculos::ListaVehiculos(){
@@ -259,7 +226,7 @@ double ListaVehiculos::calcularDistTotal(){
     double distancia = 0.0;
     if(listSize < 1) return distancia;
     for(unsigned int i = 0; i<listSize;i++){
-        distancia += getVehiculo(i+1).distanciaTotalRecorrida;
+        distancia += getVehiculo(i+1).distanciaTotalRecorrida();
     }
     return distancia;
 }
@@ -268,4 +235,50 @@ Vehiculo ListaVehiculos::getCurr(){
     return curr->data;
 }
 
-// Clase que se asocia al concepto de variable en la representación
+void ListaVehiculos::mostrar(){
+    for(int i=0;i<listSize;i++){
+        Vehiculo vehi = getVehiculo(i+1);
+        cout << vehi.recorrido.to_string() <<"\n";
+    }
+}
+
+
+/*
+void Vehiculo::quitarUltimaParada(int velocidad, int tiempoServicio, int tiempoRecarga){
+    if(recorrido.len()<=1) return; //no se puede quitar el depot
+    recorrido.moveToEnd();
+    Nodo nodoAux = recorrido.getCurr();
+    recorrido.prev();
+    double distancia = 0.0;
+
+    distancia = calcularDistancia(nodoAux, recorrido.getCurr());
+
+    tiempoTranscurrido -= distancia/velocidad;
+    distanciaTotalRecorrida -= distancia;
+    distanciaDesdeRecarga -= distancia;
+
+    recorrido.moveToEnd();
+
+    if(recorrido.getCurr().tipo=='f'){
+        //Se debe calcular la distancia que se había recorrido desde el depot u otra estacion
+        //antes de llegar a la estacion actual.
+        distancia = 0.0;
+        do{
+            nodoAux = recorrido.getCurr();
+            recorrido.prev();
+            distancia += calcularDistancia(nodoAux,recorrido.getCurr());
+
+        }while(recorrido.getCurr().tipo=='c');
+        tiempoTranscurrido -= tiempoRecarga;
+        distanciaDesdeRecarga -= distancia;
+    }
+    else if(recorrido.getCurr().tipo=='c'){
+        tiempoTranscurrido-=tiempoServicio;
+        cantClientesVisitados--;
+    }
+    else{
+        cout << "\nError, se está intentando quitar una parada del recorrido, pero no hay nodos para quitar.\n";
+        return;
+    }
+    recorrido.pop();
+}*/
