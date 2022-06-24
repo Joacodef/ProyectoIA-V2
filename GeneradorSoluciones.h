@@ -30,7 +30,13 @@ string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisit
             //Cliente esta en la lista de clientes visitados
             return "asignado";
         }
-    }/*
+    }
+    if(nodoPorAsignar.ID == 0 && anterior.ID == 0){
+        return "sinSentido";
+    }
+    
+    
+    /*
     else if(nodoPorAsignar.tipo == 'd'){
         //Que no se pueda ir a dos estaciones seguidas (quizá no es correcta esta restriccion)
         if(anterior.tipo == 'd'){
@@ -82,17 +88,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         variables.moveToEnd();
         variableSeAsigno = false;
         vehiAux = variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, inst.tiempoServicio,inst.tiempoRecarga);
-        distActual = variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga).calcularDistTotal();
-        if(distActual > distMejorSolucion){
-            //Si la distancia de la solucion actual es mayor que la mejor solucion, se hace backtracking
-            backtracking = true;
-            //se quita variable de la lista, pero se guarda su dominio para darselo a la variableActual en la sgte iteracion
-            dominioAcotado = variableActual.dominio;
-            variables.pop();
-            variables.moveToEnd();
-            contadorIter++;
-            continue;
-        }
+        
 
         //******Verificar si se visitaron todos los clientes (nueva solución candidata)******//
         if(variables.clientesVisitados().len()>=abs(inst.numClientes)){
@@ -105,8 +101,8 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             solucionCandidata = variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga);
             distActual = solucionCandidata.calcularDistTotal();
 
-            cout << "---------SOLUCION CANDIDATA-----------\n";
-            solucionCandidata.mostrar();
+            //cout << "---------SOLUCION CANDIDATA-----------\n";
+            //solucionCandidata.mostrar();
             //return solucionCandidata;//En caso de tener problemas con backtracking
 
             if(distActual < distMejorSolucion){
@@ -194,19 +190,19 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                     
                     nodoAux = nodoMenorDistancia(variables.getCurr().nodoAsignado,variableActual.dominio);
                     restriccion = verificarRestricciones(vehiAux,variables.clientesVisitados(),nodoAux,depot,variables.getCurr().nodoAsignado,inst);
-                    //Se debe verificar si ya se pasó antes a una estación de recarga, en cuyo caso se devuelve al depot
                     variables.moveToEnd();
                     
                     if(restriccion == "siCumple"){
-                        //Si cumple las restricciones, se asigna la estación a la variable
+                        //Si la estación cumple todas las restricciones, se pasa por ella.
                         variableActual.asignarNodo(nodoAux);
                         variableActual.quitarDelDominio(variableActual.nodoAsignado);
                     }
-                    else if(restriccion == "combustible" || restriccion == "tiempo"){
-                        //Hacer BT
+                    else if(restriccion == "combustible" || restriccion == "tiempo" || restriccion == "sinSentido"){
+                        //Si hay alguna que no cumpla, no se necesita intentar con niguna otra
                         variableActual.dominio = variableActual.quitarEstacionesDominio();
                         break;  
-                    }/*
+                    }
+                    /*
                     else if(restriccion == "dosEstaciones"){
                         //
                     }*/
@@ -215,11 +211,14 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 }  
             }
 
-            //****CONDICIÓN DE BACKTRACKING****//
-            if(variableActual.dominioVacio() && variableSeAsigno==false){
+            //****CONDICIONES DE BACKTRACKING****//
+            distActual = variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga).calcularDistTotal();
+            if((variableActual.dominioVacio() && variableSeAsigno==false) || distActual > distMejorSolucion){
 
-                //Si el dominio de una variable queda vacío, sin haberle asignado un valor factible, significa que el vehiculo 
+                //1 Si el dominio de una variable queda vacío, sin haberle asignado un valor factible, significa que el vehiculo 
                 //no cumple ninguna restriccion y debe hacerse backtracking
+                //
+                //2 Si la distancia de la solucion actual es mayor que la mejor solucion, se hace backtracking
                 backtracking = true;
                 variableSeAsigno = false;
                 //se quita variable de la lista, pero se guarda su dominio para darselo a la variableActual en la sgte iteracion
@@ -228,7 +227,6 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 variables.pop();
                 variables.moveToEnd();              
             }
-
         }//***FIN DEL LOOP CHICO***
         contadorIter ++;
 

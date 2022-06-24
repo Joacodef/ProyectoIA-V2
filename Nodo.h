@@ -238,7 +238,7 @@ string ListaNodos::to_string(){
             next();
         }
         output += std::to_string(curr->data.ID) + curr->data.tipo;
-        while(output.length()<50){
+        while(output.length()<90){
             output += " ";
         }
     }
@@ -357,6 +357,17 @@ Nodo nodoMenorDistancia(Nodo central, ListaNodos conjunto){
 bool compararNodos(Nodo nodo1, Nodo nodo2){
     if(nodo1.ID == nodo2.ID && nodo1.tipo==nodo2.tipo) return true;
     return false;
+}
+
+bool compararListasNodos(ListaNodos list1, ListaNodos list2){
+    bool respuesta = true;
+    if (list1.len()!=list2.len()) return !respuesta;
+    for(unsigned int i=0;i<list1.len();i++){
+        if(!compararNodos(list1.getNodo(i+1),list2.getNodo(i+1))){
+            respuesta = false;
+        }
+    }
+    return respuesta;
 }
 
 /*

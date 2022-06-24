@@ -69,7 +69,7 @@ int Vehiculo::tiempoTranscurrido(){
 
 double Vehiculo::distanciaTotalRecorrida(){
     double distancia = 0.0;
-    for(int i = 1; i < recorrido.len();i++){
+    for(unsigned int i = 1; i < recorrido.len();i++){
         distancia += calcularDistancia(recorrido.getNodo(i),recorrido.getNodo(i+1));
     }
     return distancia;
@@ -82,7 +82,7 @@ double Vehiculo::distanciaDesdeRecarga(){
         recorrido.prev();
         if(compararNodos(recorrido.getCurr(),recorrido.getNodo(1))) return distanciaTotalRecorrida();
     }
-    for(int i = recorrido.getPos(); i < recorrido.len();i++){
+    for(unsigned int i = recorrido.getPos(); i < recorrido.len();i++){
         distancia += calcularDistancia(recorrido.getNodo(i),recorrido.getNodo(i+1));
     }
     return distancia;
@@ -245,7 +245,7 @@ Vehiculo ListaVehiculos::getCurr(){
 }
 
 void ListaVehiculos::mostrar(){
-    for(int i=0;i<listSize;i++){
+    for(unsigned int i=0;i<listSize;i++){
         Vehiculo vehi = getVehiculo(i+1);
         cout << vehi.recorrido.to_string() <<"\n";
     }

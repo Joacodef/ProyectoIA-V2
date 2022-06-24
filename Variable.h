@@ -312,7 +312,6 @@ void ListaVariables::printNodos(){
 }
 
 Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int tiempoServicio, int tiempoRecarga){
-    double dist = 0.0;
     Vehiculo vehi = Vehiculo(velocidad, tiempoServicio, tiempoRecarga);
     Variable siguiente;
     Variable anterior;
@@ -330,7 +329,7 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
         anterior = getVariable(pos-1);
         goToPos(abs(pos));
 
-        if((pos==listSize || siguiente.nodoAsignado.tipo=='d') && getPos() > 1){
+        if((abs(pos)==listSize || siguiente.nodoAsignado.tipo=='d') && getPos() > 1){
              //Retroceder hasta llegar a un depot 
             prev();
             while(getCurr().nodoAsignado.tipo!='d'){

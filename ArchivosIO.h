@@ -92,7 +92,7 @@ void generarOutput(ListaVehiculos vehiculos,string nombreArchivo, Instancia *ins
     output << tiempoEjecucion <<"\n";
     for(unsigned int i = 0; i < vehiculos.len(); i++){ 
         output << std::setprecision(6);
-        output << vehiculos.getVehiculo(i+1).recorrido.to_string() << "     " << vehiculos.getVehiculo(i+1).distanciaTotalRecorrida() << "    " 
+        output << vehiculos.getVehiculo(i+1).recorrido.to_string() <<"  "<<vehiculos.getVehiculo(i+1).distanciaTotalRecorrida() << "    " 
                     << vehiculos.getVehiculo(i+1).tiempoTranscurrido() << "     ";
         output << std::setprecision(2);
         output << distanciasExcedidas[i] <<"\n";

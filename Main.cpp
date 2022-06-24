@@ -10,11 +10,11 @@ int Variable::id_actual = 1;
 int Vehiculo::id_actual = 1;
 
 int main() {
-    //time_t start, end;
+    time_t start, end;
     string nombreArchivo = "";
-    //double tiempoEjecucion = 0.0;
-    for(int i=1;i<2;i++){
-        for(int j=1;j<2;j++){
+    double tiempoEjecucion = 0.0;
+    for(int i=1;i<=2;i++){
+        for(int j=1;j<=20;j++){
             nombreArchivo = "";
             //tiempoEjecucion = 0.0;
             if(j<10){
@@ -40,20 +40,22 @@ int main() {
                 clientes.append(nodos.getNodo(i+inst.numEstaciones+2));                
             }
 
-            //time(&start);
+            time(&start);
 
-            ListaVehiculos vehiculos = generarSoluciones(200,inst,clientes,estaciones,depot);
-            cout<<"-----SOLUCION FINAL-----\n";
-            vehiculos.mostrar();
-            //time(&end);
-            //tiempoEjecucion = double(end-start)/ double(CLOCKS_PER_SEC);
+            ListaVehiculos vehiculos = generarSoluciones(500,inst,clientes,estaciones,depot);
+            //cout<<"-----SOLUCION FINAL-----\n";
+            //vehiculos.mostrar();
+            time(&end);
+            tiempoEjecucion = double(end-start)/ double(CLOCKS_PER_SEC);
             
-            //generarOutput(vehiculos,nombreArchivo,tiempoEjecucion);
+            generarOutput(vehiculos,nombreArchivo,&inst,tiempoEjecucion);
 
             estaciones.free();
             clientes.free();
             nodos.free();
-            return 0;
+
+            cout<<"Procesada instancia "<<nombreArchivo<<"\n";
         }
     }
+    return 0;
 }
