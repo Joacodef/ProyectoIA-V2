@@ -30,6 +30,7 @@ class Vehiculo{
 Vehiculo::Vehiculo(){
     ID = id_actual++;
     cantClientesVisitados = 0;
+    recorrido = ListaNodos();
 }
 
 Vehiculo::Vehiculo(double vel, int tServicio, int tRecarga){
@@ -38,6 +39,7 @@ Vehiculo::Vehiculo(double vel, int tServicio, int tRecarga){
     velocidad = vel;
     tiempoServicio = tServicio;
     tiempoRecarga = tRecarga;
+    recorrido = ListaNodos();
 }
 
 Vehiculo::Vehiculo(Nodo depot){

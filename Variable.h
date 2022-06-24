@@ -23,6 +23,8 @@ class Variable{
         void asignarNodo(Nodo node);
         ListaNodos dominioSoloClientes();
         bool dominioTieneCliente();
+        ListaNodos quitarClientesDominio();
+        ListaNodos quitarEstacionesDominio();
 };
 
 Variable::Variable(){
@@ -93,6 +95,28 @@ bool Variable::dominioTieneCliente(){
         }
     }
     return tieneCliente;
+}
+
+ListaNodos Variable::quitarClientesDominio(){
+    ListaNodos domSinClientes;
+    for(unsigned int i = dominio.len(); i>0;i--){
+        if(dominio.getNodo(i).tipo == 'c'){
+            dominio.remove(i);
+        }
+    }
+    domSinClientes = dominio;
+    return domSinClientes;
+}
+
+ListaNodos Variable::quitarEstacionesDominio(){
+    ListaNodos domSinEstaciones;
+    for(unsigned int i = dominio.len(); i>0;i--){
+        if(dominio.getNodo(i).tipo == 'f'){
+            dominio.remove(i);
+        }
+    }
+    domSinEstaciones = dominio;
+    return domSinEstaciones;
 }
 
 typedef struct tVar{

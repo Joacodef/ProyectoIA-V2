@@ -55,7 +55,7 @@ class ListaNodos{
     tNodo *head;
     tNodo *tail;
     tNodo *curr;
-    unsigned int listSize;
+    unsigned int *listSize;
     unsigned int pos;
 
     public:
@@ -103,7 +103,8 @@ void Nodo::mostrar(){
 
 ListaNodos::ListaNodos(){
     head = tail = curr = (tNodo*)malloc(sizeof(tNodo)); // Siempre es la cabecera
-    listSize = 0;
+    listSize = (unsigned int*)malloc(sizeof(unsigned int));
+    *listSize = 0;
     pos = 0;
 }
 
@@ -113,7 +114,7 @@ void ListaNodos::insertInFront(Nodo item){
     curr->next->data = item;
     curr->next->next = aux;
     if(curr == tail) tail = curr->next;
-    listSize++;
+    (*listSize)++;
 }
 
 void ListaNodos::append(Nodo node){
@@ -124,7 +125,7 @@ void ListaNodos::append(Nodo node){
 
 void ListaNodos::remove(int pos){
     if(pos<0) return;
-    if(abs(pos)>listSize) return;
+    if(abs(pos)>*listSize) return;
     goToPos(pos);
     prev();
     removeNext();
@@ -136,13 +137,13 @@ void ListaNodos::removeNext(){
     if(curr->next == tail) tail = curr;
     tNodo *aux = curr->next;
     curr->next = curr->next->next;
-    listSize--;
+    (*listSize)--;
     std::free(aux);
 }
 
 Nodo ListaNodos::pop(){
     Nodo nodoAux;
-    if(listSize==0) return nodoAux;
+    if(*listSize==0) return nodoAux;
     moveToEnd();
     nodoAux = curr->data;
     prev();
@@ -158,7 +159,7 @@ void ListaNodos::moveToStart(){
 
 void ListaNodos::moveToEnd(){
     curr=tail;
-    pos=listSize;
+    pos=*listSize;
 }
 
 void ListaNodos::prev(){
@@ -178,9 +179,9 @@ void ListaNodos::next(){
 }
 
 void ListaNodos::clear(){
-    if(listSize!=0){
+    if(*listSize!=0){
         moveToStart();
-        while(listSize>1){
+        while(*listSize>1){
             removeNext();
         }
     }
@@ -188,7 +189,7 @@ void ListaNodos::clear(){
 
 Nodo ListaNodos::getNodo(unsigned int pos){
     Nodo nodoAux;
-    if(pos>listSize) return nodoAux;
+    if(pos>*listSize) return nodoAux;
     goToPos(pos);
     nodoAux = curr->data;
     return nodoAux;
@@ -201,8 +202,8 @@ Nodo ListaNodos::getCurr(){
 bool compararNodos(Nodo nodo1, Nodo nodo2);
 
 int ListaNodos::find(Nodo node){
-    if(listSize==0) return -1;
-    for(unsigned int i=0;i<listSize;i++){
+    if(*listSize==0) return -1;
+    for(unsigned int i=0;i<*listSize;i++){
         if(compararNodos(node,getNodo(i+1))){
             return i+1;
         }
@@ -212,11 +213,11 @@ int ListaNodos::find(Nodo node){
 
 unsigned int ListaNodos::getPos(){return pos;}
 
-unsigned int ListaNodos::len(){return listSize;}
+unsigned int ListaNodos::len(){return *listSize;}
 
 void ListaNodos::goToPos(unsigned int pos){
     moveToStart();
-    if(pos>listSize) return;
+    if(pos>*listSize) return;
     for(unsigned int i=0;i<pos;i++){
         next();
     }
@@ -225,13 +226,14 @@ void ListaNodos::goToPos(unsigned int pos){
 void ListaNodos::free(){
     clear();
     std::free(head);
+    std::free(listSize);
 }
 
 string ListaNodos::to_string(){
     string output = "\n";
     moveToStart();
-    if(listSize != 0){
-        for(unsigned int i=0;i<listSize-1;i++){
+    if(*listSize != 0){
+        for(unsigned int i=0;i<(*listSize)-1;i++){
             output += std::to_string(getNodo(i+1).ID) + getNodo(i+1).tipo + "-";
             next();
         }
@@ -328,21 +330,21 @@ double calcularDistancia(Nodo nodo1, Nodo nodo2){
 }
 
 /*
-    "nodoMenorDistancia" recibe un nodo (central) y una lista de nodos (dominio) y calcula
-    la distancia desde el central a cada uno de los del dominio, seleccionando y retornando
+    "nodoMenorDistancia" recibe un nodo (central) y una lista de nodos (conjunto) y calcula
+    la distancia desde el central a cada uno de los del conjunto, seleccionando y retornando
     el nodo que tenga una distancia menor.
 */
 
-Nodo nodoMenorDistancia(Nodo central, ListaNodos dominio){
+Nodo nodoMenorDistancia(Nodo central, ListaNodos conjunto){
     double menor = 999999999.9;
     Nodo menorNodo;
     double distancia = 0.0;
-    for(unsigned int i=0; i<dominio.len();i++){
-        if(central.ID == dominio.getNodo(i+1).ID && central.tipo == dominio.getNodo(i+1).tipo) continue;
-        distancia = calcularDistancia(dominio.getNodo(i+1),central);
+    for(unsigned int i=0; i<conjunto.len();i++){
+        if(central.ID == conjunto.getNodo(i+1).ID && central.tipo == conjunto.getNodo(i+1).tipo) continue;
+        distancia = calcularDistancia(conjunto.getNodo(i+1),central);
         if(distancia<menor){
             menor = distancia;
-            menorNodo = dominio.getNodo(i+1);
+            menorNodo = conjunto.getNodo(i+1);
         }      
     }
     return menorNodo;

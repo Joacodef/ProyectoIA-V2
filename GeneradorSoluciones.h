@@ -7,32 +7,38 @@ using namespace std;
 
 // Funcion para generar recorridos para un vehiculo, de acuerdo con restricciones del GVRP
 
-bool verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisitados, Nodo nodoAsignado, 
-                            Instancia inst, Nodo depot/*,ListaNodos dominio*/){
-    bool cumple = true;
+string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisitados, Nodo nodoPorAsignar, 
+                              Nodo depot, Nodo anterior, Instancia inst){
+    string porQueNoCumple = "siCumple";
     //cout << vehiculoDelNodo.distanciaDesdeRecarga<<"\n";
     //Verificar si se tiene combustible para llegar al nodo asignado:
     double distRecarga = vehiculoDelNodo.distanciaDesdeRecarga();
     if(distRecarga>inst.maxDistancia){
         //Agregar cosas para quitar del dominio a otros clientes
-        return false;
+        return "combustible";
     }
     //Verificar si se tiene tiempo para volver al depósito:
-    double distanciaDeposito = calcularDistancia(nodoAsignado,depot);
+    double distanciaDeposito = calcularDistancia(nodoPorAsignar,depot);
     double tiempoAlDepot = distanciaDeposito/inst.velocidad;
     if(vehiculoDelNodo.tiempoTranscurrido()+tiempoAlDepot > inst.maxTiempo){
         //Agregar cosas para descartar nodos que esten mas lejos del depot que el actual
-        return false;
+        return "tiempo";
     }
     //Verificar si el cliente ya fue asignado
-    if(nodoAsignado.tipo == 'c'){
-        if(clientesVisitados.find(nodoAsignado)!=-1){
+    if(nodoPorAsignar.tipo == 'c'){
+        if(clientesVisitados.find(nodoPorAsignar)!=-1){
             //Cliente esta en la lista de clientes visitados
-            return false;
+            return "asignado";
         }
-    }
+    }/*
+    else if(nodoPorAsignar.tipo == 'd'){
+        //Que no se pueda ir a dos estaciones seguidas (quizá no es correcta esta restriccion)
+        if(anterior.tipo == 'd'){
+            return "dosEstaciones";
+        }
+    }*/
 
-    return cumple;
+    return porQueNoCumple;
 }
 
 
@@ -44,12 +50,13 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
     ListaVariables variables;
     Nodo nodoAux;
     Variable variableActual;
-    ListaNodos dominioRestringido;
+    ListaNodos dominioAcotado;
     Vehiculo vehiAux = Vehiculo(inst.velocidad, inst.tiempoServicio, inst.tiempoRecarga);
     bool backtracking = false;
     bool variableSeAsigno = false;
     double distMejorSolucion = INFINITY;
     double distActual = 0.0;
+    string restriccion;
 
     //***************LOOP PRINCIPAL******************//
     while(contadorIter < maxIteraciones){
@@ -73,17 +80,16 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
 
         //vehiAux guardará al principio de cada iteración el recorrido en el que se esté en esta asignación
         variables.moveToEnd();
+        variableSeAsigno = false;
         vehiAux = variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, inst.tiempoServicio,inst.tiempoRecarga);
         distActual = variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga).calcularDistTotal();
         if(distActual > distMejorSolucion){
             //Si la distancia de la solucion actual es mayor que la mejor solucion, se hace backtracking
             backtracking = true;
-            variableSeAsigno = false;
             //se quita variable de la lista, pero se guarda su dominio para darselo a la variableActual en la sgte iteracion
-            dominioRestringido = variableActual.dominio;
+            dominioAcotado = variableActual.dominio;
             variables.pop();
             variables.moveToEnd();
-            variableActual = variables.getCurr();
             contadorIter++;
             continue;
         }
@@ -114,14 +120,13 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             variables.moveToEnd();
             backtracking = true;
             variableSeAsigno = false; 
-            dominioRestringido = variables.getCurr().dominio; 
+            dominioAcotado = variables.getCurr().dominio; 
             variables.pop();          
             variables.moveToEnd();
-            variableActual = variables.getCurr();
             contadorIter++; 
             continue;
         }
-        variableSeAsigno = false;
+        
 
         //Se comprueba si estamos entrando al loop por backtracking o no
         if(!backtracking){
@@ -137,10 +142,10 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             }
         }
         else{
-            //Si estamos haciendo backtracking, la variable auxiliar "variableActual" parte con el dominio
-            //de la variable que se tenía antes. En teoría es la misma variable, pero era más simple hacerlo así.
+            //Si hicimos backtracking, la variable auxiliar "variableActual" parte con el dominio (acotado)
+            //de la variable que se tenía antes al final de la lista.
             backtracking = false;
-            variableActual = Variable(dominioRestringido);
+            variableActual = Variable(dominioAcotado);
         }
 
         //Se verifica si el recorrido actual ya terminó, en cuyo caso se debe asignar un depot a la nueva variable
@@ -157,56 +162,56 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
 
             //Verificar que no se haya asignado un nodo a la variable, y que su dominio no esté vacío
             while(!variableSeAsigno && !variableActual.dominioVacio()){
-
+                variables.moveToEnd();
                 //Si quedan clientes se busca más cercano:
                 if(variableActual.dominioTieneCliente()){
-                    nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominioSoloClientes());
-                    variables.moveToEnd();
-
+                    nodoAux = nodoMenorDistancia(variables.getCurr().nodoAsignado, variableActual.dominioSoloClientes());
+                    restriccion = verificarRestricciones(vehiAux,variables.clientesVisitados(),nodoAux,depot,variables.getCurr().nodoAsignado,inst);
                     //Se verifica si el cliente a asignar cumple las restricciones
-                    if(verificarRestricciones(vehiAux,variables.clientesVisitados(),nodoAux,inst,depot)){
-
+                    if(restriccion == "siCumple"){
                         //Si cumple las restricciones, se asigna el cliente a la variable
                         variableActual.asignarNodo(nodoAux);
-                        variables.append(variableActual); 
-                        variables.moveToEnd();
+                        variableActual.quitarDelDominio(variableActual.nodoAsignado);
+                        variables.append(variableActual);
                         variableSeAsigno = true;
-                        variables.getCurr().quitarDelDominio(variableActual.nodoAsignado);
                     }
-                    else{
-
-                        //Si no cumple restricciones, se debe quitar el cliente del dominio
-                        variables.moveToEnd();
+                    else if(restriccion == "combustible"){
+                        //Si no cumple restriccion de combustible, se deben quitar clientes del dominio, para ir estacion
+                        variableActual.dominio = variableActual.quitarClientesDominio();
+                    }
+                    else if(restriccion == "tiempo"){
+                        //Si no cumple restriccion de tiempo, debe volver al depot
+                        variableActual.asignarNodo(depot);
+                        variables.append(variableActual);
+                        variableSeAsigno = true;
+                    }
+                    else if(restriccion == "asignado"){
+                        //Si no cumple porque esta asignado a otro cliente, se quita de su dominio
                         variableActual.quitarDelDominio(nodoAux);
                     }
                 }
-                else{ //Si no quedan clientes en el dominio de "variableActual"
+                else{ //Si no quedan clientes en el dominio de variableActual
                     
-                    nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominio);
+                    nodoAux = nodoMenorDistancia(variables.getCurr().nodoAsignado,variableActual.dominio);
+                    restriccion = verificarRestricciones(vehiAux,variables.clientesVisitados(),nodoAux,depot,variables.getCurr().nodoAsignado,inst);
                     //Se debe verificar si ya se pasó antes a una estación de recarga, en cuyo caso se devuelve al depot
                     variables.moveToEnd();
-                    if(variables.getCurr().nodoAsignado.tipo == 'f'){
-                        variableActual.asignarNodo(depot);
-                        variables.append(variableActual);
-                        variableSeAsigno = true;
-                        break;
-                    }
-                    if(verificarRestricciones(vehiAux,variables.clientesVisitados(),nodoAux,inst,depot)){
+                    
+                    if(restriccion == "siCumple"){
                         //Si cumple las restricciones, se asigna la estación a la variable
                         variableActual.asignarNodo(nodoAux);
-                        variables.append(variableActual); 
-                        variables.moveToEnd();
-                        variableSeAsigno = true;
-                        variables.getCurr().quitarDelDominio(variableActual.nodoAsignado);
+                        variableActual.quitarDelDominio(variableActual.nodoAsignado);
                     }
-                    else{
-                        //Si ninguna estación cumple las restricciones, se devuelve al deposito 
-                        //pueden infringirse reglas de distancia!!
-                        variableActual.asignarNodo(depot);
-                        variables.append(variableActual);
-                        variables.moveToEnd();
-                        variableSeAsigno = true;
-                    }
+                    else if(restriccion == "combustible" || restriccion == "tiempo"){
+                        //Hacer BT
+                        variableActual.dominio = variableActual.quitarEstacionesDominio();
+                        break;  
+                    }/*
+                    else if(restriccion == "dosEstaciones"){
+                        //
+                    }*/
+                    variables.append(variableActual);
+                    variableSeAsigno = true;
                 }  
             }
 
@@ -218,10 +223,10 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 backtracking = true;
                 variableSeAsigno = false;
                 //se quita variable de la lista, pero se guarda su dominio para darselo a la variableActual en la sgte iteracion
-                dominioRestringido = variableActual.dominio;
-                variables.pop();
                 variables.moveToEnd();
-                variableActual = variables.getCurr();                
+                dominioAcotado = variables.getCurr().dominio;
+                variables.pop();
+                variables.moveToEnd();              
             }
 
         }//***FIN DEL LOOP CHICO***

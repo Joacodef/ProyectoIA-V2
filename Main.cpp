@@ -42,7 +42,7 @@ int main() {
 
             //time(&start);
 
-            ListaVehiculos vehiculos = generarSoluciones(10000,inst,clientes,estaciones,depot);
+            ListaVehiculos vehiculos = generarSoluciones(200,inst,clientes,estaciones,depot);
             cout<<"-----SOLUCION FINAL-----\n";
             vehiculos.mostrar();
             //time(&end);
