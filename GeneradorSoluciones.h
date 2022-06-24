@@ -84,6 +84,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             variables.pop();
             variables.moveToEnd();
             variableActual = variables.getCurr();
+            contadorIter++;
             continue;
         }
 
@@ -97,6 +98,9 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
 
             solucionCandidata = variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga);
             distActual = solucionCandidata.calcularDistTotal();
+
+            cout << "---------SOLUCION CANDIDATA-----------\n";
+            solucionCandidata.mostrar();
             //return solucionCandidata;//En caso de tener problemas con backtracking
 
             if(distActual < distMejorSolucion){
@@ -113,7 +117,8 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             dominioRestringido = variables.getCurr().dominio; 
             variables.pop();          
             variables.moveToEnd();
-            variableActual = variables.getCurr(); 
+            variableActual = variables.getCurr();
+            contadorIter++; 
             continue;
         }
         variableSeAsigno = false;
@@ -171,6 +176,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                     else{
 
                         //Si no cumple restricciones, se debe quitar el cliente del dominio
+                        variables.moveToEnd();
                         variableActual.quitarDelDominio(nodoAux);
                     }
                 }
@@ -178,7 +184,6 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                     
                     nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominio);
                     //Se debe verificar si ya se pasó antes a una estación de recarga, en cuyo caso se devuelve al depot
-                    //se pueden infringir restricciones de tiempo total!!
                     variables.moveToEnd();
                     if(variables.getCurr().nodoAsignado.tipo == 'f'){
                         variableActual.asignarNodo(depot);
@@ -192,9 +197,11 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                         variables.append(variableActual); 
                         variables.moveToEnd();
                         variableSeAsigno = true;
+                        variables.getCurr().quitarDelDominio(variableActual.nodoAsignado);
                     }
                     else{
-                        //Si ninguna estación cumple las restricciones, se devuelve al deposito (pueden infringirse reglas de distancia)
+                        //Si ninguna estación cumple las restricciones, se devuelve al deposito 
+                        //pueden infringirse reglas de distancia!!
                         variableActual.asignarNodo(depot);
                         variables.append(variableActual);
                         variables.moveToEnd();
@@ -203,7 +210,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 }  
             }
 
-            //****POSIBLE CONDICIÓN DE BACKTRACKING****//
+            //****CONDICIÓN DE BACKTRACKING****//
             if(variableActual.dominioVacio() && variableSeAsigno==false){
 
                 //Si el dominio de una variable queda vacío, sin haberle asignado un valor factible, significa que el vehiculo 
