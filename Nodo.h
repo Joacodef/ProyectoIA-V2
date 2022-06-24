@@ -180,7 +180,7 @@ void ListaNodos::next(){
 void ListaNodos::clear(){
     if(listSize!=0){
         moveToStart();
-        while(listSize>0){
+        while(listSize>1){
             removeNext();
         }
     }
