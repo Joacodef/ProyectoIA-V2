@@ -42,11 +42,10 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
     Nodo nodoAux;
     Variable variableActual;
     Vehiculo vehiAux = Vehiculo(inst.velocidad, inst.tiempoServicio, inst.tiempoRecarga);
-    double distancia = 0.0;
     bool backtracking = false;
     bool variableSeAsigno = false;
 
-    //LOOP PRINCIPAL:
+    //***************LOOP PRINCIPAL (se asignan nuevas variables o se hace backtracking)******************
     while(contadorIter < maxIteraciones){
         /*
         Verificar si se está entrando al loop "avanzando" o por backtracking. Si es lo primero,
@@ -77,6 +76,9 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         //Se comprueba si se han visitado todos los clientes 
         if(variables.clientesVisitados().len()>=abs(inst.numClientes)){
             //(Por ahora se detiene con la primera solucion encontrada)
+            Variable depotFinal;
+            depotFinal.asignarNodo(depot);
+            variables.append(depotFinal);
             return variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga); 
         }
         variableSeAsigno = false;
@@ -105,13 +107,14 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             variableActual.asignarNodo(depot);
             variables.append(variableActual);
         }
-        else{
+        else{//**************LOOP "CHICO" (se buscan asignaciones factibles)****************
+
             //Se buscan asignaciones factibles para la nueva variable en un loop. Si el dominio esta vacío o se encontró
             //la asignación, se termina el loop, habiendo asignado la variable.
             while(!variableSeAsigno && !variableActual.dominioVacio()){
                 //Se verifica si a la variable no se le puede asignar ningun cliente, para que busque cualquier nodo cercano (estaciones de recarga)
-                if(variableActual.dominioSoloClientes().len() < 1){
-                    nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominioSoloClientes(),&distancia);
+                if(!variableActual.dominioTieneCliente()){
+                    nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominio);
                     if(verificarRestricciones(vehiAux,variables.clientesVisitados(),nodoAux,inst,depot)){
                         //Si las cumple, se asigna el cliente a la variable
                         variableActual.asignarNodo(nodoAux);
@@ -119,10 +122,17 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                         variables.moveToEnd();
                         variableSeAsigno = true;
                     }
+                    else{
+                        //Si ninguna estación cumple las restricciones, se devuelve al deposito
+                        variableActual.asignarNodo(depot);
+                        variables.append(variableActual);
+                        variables.moveToEnd();
+                        variableSeAsigno = true;
+                    }
                 }
                 else{
                     //Si todavía hay clientes, se busca busca solo dentro de los clientes el mas cercano
-                    nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominioSoloClientes(),&distancia);
+                    nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominioSoloClientes());
                     variables.moveToEnd();
                     //Se verifica si el cliente a asignar cumple las restricciones
                     if(verificarRestricciones(vehiAux,variables.clientesVisitados(),nodoAux,inst,depot)){

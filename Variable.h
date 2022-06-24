@@ -21,6 +21,7 @@ class Variable{
         bool dominioVacio();
         void asignarNodo(Nodo node);
         ListaNodos dominioSoloClientes();
+        bool dominioTieneCliente();
 };
 
 Variable::Variable(){
@@ -62,14 +63,29 @@ void Variable::asignarNodo(Nodo node){
 }
 
 ListaNodos Variable::dominioSoloClientes(){
-    ListaNodos domCli = ListaNodos();
+    ListaNodos domCli;
+    Nodo nodoAux;
     if(dominio.len()<1) return domCli;
     for(unsigned int i=0;i<dominio.len();i++){
-        if(dominio.getNodo(i+1).tipo=='c'){
-            domCli.append(dominio.getNodo(i+1));
+        nodoAux = dominio.getNodo(i+1);
+        if(nodoAux.tipo=='c'){
+            domCli.append(nodoAux);
         }
     }
     return domCli;
+}
+
+bool Variable::dominioTieneCliente(){
+    bool tieneCliente=false;
+    Nodo nodoAux;
+    if(dominio.len()<1) return tieneCliente;
+    for(unsigned int i=0;i<dominio.len();i++){
+        nodoAux = dominio.getNodo(i+1);
+        if(nodoAux.tipo=='c'){
+            return true;
+        }
+    }
+    return tieneCliente;
 }
 
 typedef struct tVar{
@@ -233,7 +249,9 @@ ListaNodos ListaVariables::clientesVisitados(){
         return clientes;
     }
     for(unsigned int i = 0;i<listSize;i++){
-        clientes.append(getVariable(i+1).nodoAsignado);
+        if(getVariable(i+1).nodoAsignado.tipo=='c'){
+            clientes.append(getVariable(i+1).nodoAsignado);
+        }
     }
     return clientes;
 }

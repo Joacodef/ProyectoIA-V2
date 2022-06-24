@@ -4,7 +4,6 @@
 #include <bits/stdc++.h>
 #include "GeneradorSoluciones.h"
 
-
 using namespace std;
 
 int Variable::id_actual = 1;
@@ -43,7 +42,7 @@ int main() {
 
             //time(&start);
 
-            ListaVehiculos vehiculos = generarSoluciones(10,inst,clientes,estaciones,depot);
+            ListaVehiculos vehiculos = generarSoluciones(100,inst,clientes,estaciones,depot);
             
             vehiculos.mostrar();
             //time(&end);

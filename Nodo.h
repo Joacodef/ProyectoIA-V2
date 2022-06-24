@@ -198,10 +198,12 @@ Nodo ListaNodos::getCurr(){
     return curr->data;
 }
 
+bool compararNodos(Nodo nodo1, Nodo nodo2);
+
 int ListaNodos::find(Nodo node){
     if(listSize==0) return -1;
     for(unsigned int i=0;i<listSize;i++){
-        if(node.ID == getNodo(i+1).ID && node.tipo == getNodo(i+1).tipo){
+        if(compararNodos(node,getNodo(i+1))){
             return i+1;
         }
     }
@@ -331,7 +333,7 @@ double calcularDistancia(Nodo nodo1, Nodo nodo2){
     el nodo que tenga una distancia menor.
 */
 
-Nodo nodoMenorDistancia(Nodo central, ListaNodos dominio, double *distPtr){
+Nodo nodoMenorDistancia(Nodo central, ListaNodos dominio){
     double menor = 999999999.9;
     Nodo menorNodo;
     double distancia = 0.0;
@@ -340,7 +342,6 @@ Nodo nodoMenorDistancia(Nodo central, ListaNodos dominio, double *distPtr){
         distancia = calcularDistancia(dominio.getNodo(i+1),central);
         if(distancia<menor){
             menor = distancia;
-            *distPtr = distancia;
             menorNodo = dominio.getNodo(i+1);
         }      
     }
