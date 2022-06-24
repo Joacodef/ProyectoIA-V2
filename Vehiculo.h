@@ -62,22 +62,27 @@ bool Vehiculo::recorridoTerminado(){
 }
 
 int Vehiculo::tiempoTranscurrido(){
-    int tiempo = 0;
-    recorrido.moveToStart();
-
-    return tiempo;
+    return distanciaTotalRecorrida()/velocidad;
 }
-
-//IMPLEMENTAR ESTAS FUNCIONES
-
 
 double Vehiculo::distanciaTotalRecorrida(){
     double distancia = 0.0;
+    for(int i = 1; i < recorrido.len();i++){
+        distancia += calcularDistancia(recorrido.getNodo(i),recorrido.getNodo(i+1));
+    }
     return distancia;
 }
 
 double Vehiculo::distanciaDesdeRecarga(){
     double distancia = 0.0;
+    recorrido.moveToEnd();
+    while(recorrido.getCurr().tipo!='f'){
+        recorrido.prev();
+        if(compararNodos(recorrido.getCurr(),recorrido.getNodo(1))) return distanciaTotalRecorrida();
+    }
+    for(int i = recorrido.getPos(); i < recorrido.len();i++){
+        distancia += calcularDistancia(recorrido.getNodo(i),recorrido.getNodo(i+1));
+    }
     return distancia;
 }
 

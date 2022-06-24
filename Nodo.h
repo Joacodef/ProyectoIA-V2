@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <cmath>
 
 using namespace std;
 
@@ -14,8 +15,7 @@ Representa los clientes, estaciones de recarga y el depósito. Guarda informaci�
 toda la información sobre ellos que se obtiene desde los archivos de instancia:
 su ID, tipo y coodenadas. 
 
-Otros atributos y métodos:
-next (Nodo*) - se utiliza en las listas enlazadas de nodos para apuntar al siguiente.
+El único método implementado es:
 
 mostrar() (void) - se utiliza para imprimir en pantalla la información del nodo.
 *
@@ -28,7 +28,6 @@ class Nodo{
         char tipo;
         double longitud;
         double latitud;
-        Nodo *next;
 
         Nodo();
         void mostrar();   
@@ -37,28 +36,31 @@ class Nodo{
 
 /**********
  * 
-Clase ListaNodos:
+Clase ListaNodos y struct tNodo:
 
-Guarda en una lista enlaz
-
-Otros atributos y métodos:
-next (Nodo*) - se utiliza en las listas enlazadas de nodos para apuntar al siguiente.
-
-mostrar() (void) - se utiliza para imprimir en pantalla la información del nodo.
+Implementación de el TDA de lista enlazada, donde los objetos son structs tNodo,
+que guardan un objecto de clase Nodo, y un puntero a Nodo que apunta al siguiente
+de la lista.
+ 
 *
 *
 **************/
 
+typedef struct tNodo{
+    Nodo data;
+    struct tNodo *next;
+} tNodo;
+
 class ListaNodos{
-    tPaso *head;
-    tPaso *tail;
-    tPaso *curr;
+    tNodo *head;
+    tNodo *tail;
+    tNodo *curr;
     unsigned int listSize;
     unsigned int pos;
 
     public:
         ListaNodos();
-        void insertInFront(Nodo item); //insertar en pos actual
+        void insertInFront(Nodo item); //insertar en pos central
         void append(Nodo node);
         void remove(int pos);
         void removeNext();
@@ -99,20 +101,15 @@ void Nodo::mostrar(){
 
 //******** Implementación de métodos de la clase ListaNodos ************
 
-typedef struct tPaso{
-    Nodo data;
-    struct tPaso *next;
-} tPaso;
-
 ListaNodos::ListaNodos(){
-    head = tail = curr = (tPaso*)malloc(sizeof(tPaso)); // Siempre es la cabecera
+    head = tail = curr = (tNodo*)malloc(sizeof(tNodo)); // Siempre es la cabecera
     listSize = 0;
     pos = 0;
 }
 
 void ListaNodos::insertInFront(Nodo item){
-    tPaso *aux = curr->next;
-    curr->next = (tPaso*)malloc(sizeof(tPaso));
+    tNodo *aux = curr->next;
+    curr->next = (tNodo*)malloc(sizeof(tNodo));
     curr->next->data = item;
     curr->next->next = aux;
     if(curr == tail) tail = curr->next;
@@ -137,7 +134,7 @@ void ListaNodos::remove(int pos){
 void ListaNodos::removeNext(){
     if(curr==tail) return;
     if(curr->next == tail) tail = curr;
-    tPaso *aux = curr->next;
+    tNodo *aux = curr->next;
     curr->next = curr->next->next;
     listSize--;
     std::free(aux);
@@ -165,7 +162,7 @@ void ListaNodos::moveToEnd(){
 }
 
 void ListaNodos::prev(){
-    tPaso *temp;
+    tNodo *temp;
     if (curr==head) return;
     temp = head;
     while (temp->next != curr) temp = temp->next;
@@ -248,7 +245,14 @@ string ListaNodos::to_string(){
     return output;
 }
 
-// OTRAS FUNCIONES RELATIVAS A NODOS:
+// *******************OTRAS FUNCIONES RELATIVAS A NODOS***************************
+
+/*
+    "concatenar" junta los elementos de dos listas enlazadas de nodos, uniendo el último
+    elemento del parámetro "lista1" con el primer elemento (saltándose el head, que no
+    guarda datos) del segundo parámetro "lista2". Retorna un objeto de clase ListaNodos.
+
+*/
 
 ListaNodos concatenar(ListaNodos lista1, ListaNodos lista2){
     //Con esto quedan los elementos de la lista1 seguidos de los de la lista2
@@ -275,18 +279,24 @@ bool nodosIguales(Nodo nodo1, Nodo nodo2){
     return false;
 }
 
-//Funciones para calcular distancia entre nodos:
+/*
+    "aRadianes" convierte el parámetro num, que se espera represente un ángulo medido
+    en grados, a radianes.
+*/
 
 double aRadianes(double num){
-    double rad = 0.0;
-    rad = MY_PI * (num/180.0);
+    double rad = MY_PI * (num/180.0);
     return rad;
 }
 
-double haversine(float num){
+double semiVerseno(float num){
     return pow(sin(num/2.0),2);
 }
 
+/*
+    "distanciaHaversine" usa la fórmula de semiverseno para calcular la distancia
+    entre dos puntos sobre una esfera, dadas sus coordenadas de longitud y latitud.
+*/
 
 double distanciaHaversine(double lon1, double lat1, double lon2, double lat2){
     double distancia = 0.0;
@@ -294,7 +304,7 @@ double distanciaHaversine(double lon1, double lat1, double lon2, double lat2){
     double deltaLat = aRadianes(lat1 - lat2);
     double deltaLon = aRadianes(lon1 - lon2);
 
-    double a = haversine(deltaLat) + cos(aRadianes(lat1)) * cos(aRadianes(lat2)) * haversine(deltaLon);
+    double a = semiVerseno(deltaLat) + cos(aRadianes(lat1)) * cos(aRadianes(lat2)) * semiVerseno(deltaLon);
     
     double c = 2.0 * atan2(sqrt(a),sqrt(1-a));
 
@@ -303,6 +313,11 @@ double distanciaHaversine(double lon1, double lat1, double lon2, double lat2){
     return distancia;
 }
 
+/*
+    "calcularDistancia" aplica la función distanciaHaversine pero puede recibir como parámetros
+    dos objetos de clase Nodo.
+*/
+
 double calcularDistancia(Nodo nodo1, Nodo nodo2){
     double distancia = 0.0;
     distancia = distanciaHaversine(nodo1.longitud,nodo1.latitud,
@@ -310,15 +325,19 @@ double calcularDistancia(Nodo nodo1, Nodo nodo2){
     return distancia;
 }
 
+/*
+    "nodoMenorDistancia" recibe un nodo (central) y una lista de nodos (dominio) y calcula
+    la distancia desde el central a cada uno de los del dominio, seleccionando y retornando
+    el nodo que tenga una distancia menor.
+*/
 
-
-Nodo nodoMenorDistancia(Nodo actual, ListaNodos dominio, double *distPtr){
+Nodo nodoMenorDistancia(Nodo central, ListaNodos dominio, double *distPtr){
     double menor = 999999999.9;
     Nodo menorNodo;
     double distancia = 0.0;
     for(unsigned int i=0; i<dominio.len();i++){
-        if(actual.ID == dominio.getNodo(i+1).ID && actual.tipo == dominio.getNodo(i+1).tipo) continue;
-        distancia = calcularDistancia(dominio.getNodo(i+1),actual);
+        if(central.ID == dominio.getNodo(i+1).ID && central.tipo == dominio.getNodo(i+1).tipo) continue;
+        distancia = calcularDistancia(dominio.getNodo(i+1),central);
         if(distancia<menor){
             menor = distancia;
             *distPtr = distancia;
@@ -326,6 +345,15 @@ Nodo nodoMenorDistancia(Nodo actual, ListaNodos dominio, double *distPtr){
         }      
     }
     return menorNodo;
+}
+
+/*
+    "compararNodos" determina si dos nodos son iguales segun su ID y su tipo.
+*/
+
+bool compararNodos(Nodo nodo1, Nodo nodo2){
+    if(nodo1.ID == nodo2.ID && nodo1.tipo==nodo2.tipo) return true;
+    return false;
 }
 
 /*

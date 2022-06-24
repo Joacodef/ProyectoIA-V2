@@ -4,6 +4,7 @@
 #include <bits/stdc++.h>
 #include "GeneradorSoluciones.h"
 
+
 using namespace std;
 
 int Variable::id_actual = 1;
