@@ -14,6 +14,7 @@ class Variable{
 
         Variable();
         Variable(ListaNodos clientes, ListaNodos estaciones);
+        Variable(ListaNodos dominioRestringido); //para Backtracking
         void eliminarClientesDominio();
         void eliminarNodosMasLejosDepot(double distancia);
         void resetearDominio(ListaNodos clientes, ListaNodos estaciones);
@@ -34,6 +35,12 @@ Variable::Variable(ListaNodos clientes, ListaNodos estaciones){
     ID = id_actual++;
     nodoAsignado = Nodo();
     dominio = concatenar(clientes,estaciones);
+}
+
+Variable::Variable(ListaNodos dominioRestringido){
+    ID = id_actual++;
+    nodoAsignado = Nodo();
+    dominio = dominioRestringido;
 }
 
 void Variable::resetearDominio(ListaNodos clientes, ListaNodos estaciones){
@@ -101,9 +108,7 @@ class ListaVariables{
     unsigned int listSize;
     unsigned int pos;
     //ListaVehiculos vehiculosEnUso;
-
     public:
-        ListaVehiculos mejorSolucion;
         ListaVariables();
         void insertInFront(Variable item);
         void append(Variable vari); 
@@ -134,7 +139,6 @@ ListaVariables::ListaVariables(){
     head = tail = curr = (tVar*)malloc(sizeof(tVar)); // Siempre es la cabecera
     listSize = 0;
     pos = 0;
-    mejorSolucion = ListaVehiculos();
 }
 
 void ListaVariables::insertInFront(Variable item){
@@ -338,7 +342,6 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
     }
     return vehi;
 }
-
 
 int ListaVariables::find(Variable var){
     if(len()==0) return -1;

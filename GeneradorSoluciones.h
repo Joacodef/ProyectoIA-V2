@@ -12,7 +12,8 @@ bool verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisitad
     bool cumple = true;
     //cout << vehiculoDelNodo.distanciaDesdeRecarga<<"\n";
     //Verificar si se tiene combustible para llegar al nodo asignado:
-    if(vehiculoDelNodo.distanciaDesdeRecarga()>inst.maxDistancia){
+    double distRecarga = vehiculoDelNodo.distanciaDesdeRecarga();
+    if(distRecarga>inst.maxDistancia){
         //Agregar cosas para quitar del dominio a otros clientes
         return false;
     }
@@ -37,10 +38,13 @@ bool verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisitad
 
 ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos clientes, 
                                   ListaNodos estaciones, Nodo depot){
+    ListaVehiculos mejorSolucion;
+    ListaVehiculos solucionCandidata;
     int contadorIter = 0;
     ListaVariables variables;
     Nodo nodoAux;
     Variable variableActual;
+    ListaNodos dominioRestringido;
     Vehiculo vehiAux = Vehiculo(inst.velocidad, inst.tiempoServicio, inst.tiempoRecarga);
     bool backtracking = false;
     bool variableSeAsigno = false;
@@ -70,16 +74,45 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         */
 
         //vehiAux guardará al principio de cada iteración el recorrido en el que se esté en esta asignación
+        //El problema es que al hacer backtracking, la ultima variable en variables no ha sido asignada todavia
+        //entonces no funciona calcular el trayecto hasta ahora
         variables.moveToEnd();
         vehiAux = variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, inst.tiempoServicio,inst.tiempoRecarga);
 
         //Se comprueba si se han visitado todos los clientes 
         if(variables.clientesVisitados().len()>=abs(inst.numClientes)){
-            //(Por ahora se detiene con la primera solucion encontrada)
+            //Determinar si nueva solución es mejor
+            
             Variable depotFinal;
             depotFinal.asignarNodo(depot);
             variables.append(depotFinal);
-            return variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga); 
+
+            solucionCandidata = variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga);
+            cout << "SOLUCION\n";
+            solucionCandidata.mostrar();
+            
+            //return solucionCandidata;
+            double distMejorSol = mejorSolucion.calcularDistTotal();
+            if(distMejorSol <= 0.0){
+                mejorSolucion = solucionCandidata;
+            }
+            else{
+                if(solucionCandidata.calcularDistTotal() < mejorSolucion.calcularDistTotal()){
+                mejorSolucion = solucionCandidata;
+                }
+            } 
+            
+            //Ahora borramos el depot de la solución, restringimos y guardamos el dominio de la 
+            //última variable, y hacemos backtracking
+            variables.pop();
+            variables.moveToEnd();
+            backtracking = true;
+            variableSeAsigno = false; 
+            dominioRestringido = variables.getCurr().dominio; 
+            variables.pop();          
+            variables.moveToEnd();
+            variableActual = variables.getCurr(); 
+            continue;
         }
         variableSeAsigno = false;
         //Se comprueba si estamos entrando al loop por backtracking o no
@@ -97,8 +130,9 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         }
         else{
             //El punto de detectar si hay backtracking es no declarar una nueva variable, por lo tanto se asigna
-            //el flag como false en seguida. (puede que haya que hacer otras cosas más adelante para este caso)
+            //el flag como false en seguida. 
             backtracking = false;
+            variableActual = Variable(dominioRestringido);
         }
 
         //Se verifica si el recorrido actual ya terminó, en cuyo caso se debe asignar un depot a la nueva variable
@@ -107,23 +141,34 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             variableActual.asignarNodo(depot);
             variables.append(variableActual);
         }
-        else{//**************LOOP "CHICO" (se buscan asignaciones factibles)****************
+        else{//*******************LOOP "CHICO" (se buscan asignaciones factibles)*******************
+
 
             //Se buscan asignaciones factibles para la nueva variable en un loop. Si el dominio esta vacío o se encontró
             //la asignación, se termina el loop, habiendo asignado la variable.
+
+            //Verificar que no se haya asignado un nodo a la variable, y que su dominio no esté vacío
             while(!variableSeAsigno && !variableActual.dominioVacio()){
                 //Se verifica si a la variable no se le puede asignar ningun cliente, para que busque cualquier nodo cercano (estaciones de recarga)
                 if(!variableActual.dominioTieneCliente()){
                     nodoAux = nodoMenorDistancia(variableActual.nodoAsignado,variableActual.dominio);
+                    //Se debe verificar si ya se pasó antes a una estación de recarga, en cuyo caso se devuelve al depot
+                    variables.moveToEnd();
+                    if(variables.getCurr().nodoAsignado.tipo == 'f'){
+                        variableActual.asignarNodo(depot);
+                        variables.append(variableActual);
+                        variableSeAsigno = true;
+                        break;
+                    }
                     if(verificarRestricciones(vehiAux,variables.clientesVisitados(),nodoAux,inst,depot)){
-                        //Si las cumple, se asigna el cliente a la variable
+                        //Si cumple las restricciones, se asigna la estación a la variable
                         variableActual.asignarNodo(nodoAux);
                         variables.append(variableActual); 
                         variables.moveToEnd();
                         variableSeAsigno = true;
                     }
                     else{
-                        //Si ninguna estación cumple las restricciones, se devuelve al deposito
+                        //Si ninguna estación cumple las restricciones, se devuelve al deposito (pueden infringirse reglas de distancia)
                         variableActual.asignarNodo(depot);
                         variables.append(variableActual);
                         variables.moveToEnd();
@@ -136,14 +181,15 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                     variables.moveToEnd();
                     //Se verifica si el cliente a asignar cumple las restricciones
                     if(verificarRestricciones(vehiAux,variables.clientesVisitados(),nodoAux,inst,depot)){
-                        //Si las cumple, se asigna el cliente a la variable
+                        //Si cumple las restricciones, se asigna el cliente a la variable
                         variableActual.asignarNodo(nodoAux);
                         variables.append(variableActual); 
                         variables.moveToEnd();
                         variableSeAsigno = true;
+                        variables.getCurr().quitarDelDominio(variableActual.nodoAsignado);
                     }
                     else{
-                        //Si no las cumple, se debe quitar el cliente del dominio
+                        //Si no cumple restricciones, se debe quitar el cliente del dominio
                         variableActual.quitarDelDominio(nodoAux);
                     }
                 } 
@@ -153,12 +199,13 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 //Si el dominio de una variable queda vacío, sin haberle asignado un valor factible, significa que el vehiculo 
                 //no cumple ninguna restriccion y debe hacerse backtracking
                 backtracking = true;
-                
-                //Se vuelve a la ultima variable que se había asignado, se le borra el nodo asignado y se quita ese nodo del dominio
+                variableSeAsigno = false;
+                //se quita variable de la lista, pero lo que significa es que le quitamos su asignación, para después
+                //darle otra. Guardamos su dominio para seguir probando valores dintintos.
+                dominioRestringido = variableActual.dominio;
+                variables.pop();
                 variables.moveToEnd();
-                variableActual = variables.getCurr();
-                variableActual.quitarDelDominio(variableActual.nodoAsignado);
-                variableActual.nodoAsignado = Nodo();
+                variableActual = variables.getCurr();                
             }
         }
         
