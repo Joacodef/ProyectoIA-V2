@@ -87,9 +87,9 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         //vehiAux guardará al principio de cada iteración el recorrido en el que se esté en esta asignación
         variables.moveToEnd();
         variableSeAsigno = false;
-        vehiAux = variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, inst.tiempoServicio,inst.tiempoRecarga);
+        if(variables.len()>1) vehiAux = variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, 
+                                                        inst.tiempoServicio,inst.tiempoRecarga);
         
-
         //******Verificar si se visitaron todos los clientes (nueva solución candidata)******//
         if(variables.clientesVisitados().len()>=abs(inst.numClientes)){
 
@@ -150,7 +150,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             variableActual.asignarNodo(depot);
             variables.append(variableActual);
         }
-        else{//*******************LOOP CHICO*******************//
+        else{//*******************LOOP SECUNDARIO*******************//
 
 
             //Se buscan asignaciones factibles para la nueva variable en un loop. Si el dominio esta vacío o se encontró
@@ -227,7 +227,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 variables.pop();
                 variables.moveToEnd();              
             }
-        }//***FIN DEL LOOP CHICO***
+        }//***FIN DEL LOOP SECUNDARIO***
         contadorIter ++;
         //vehiAux.free();
     }//***FIN DEL LOOP PRINCIPAL***

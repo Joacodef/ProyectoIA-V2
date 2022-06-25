@@ -88,13 +88,13 @@ void ListaNodos::moveToStart(){
 }
 
 void ListaNodos::moveToEnd(){
-    ptr = vect.end();
+    ptr = vect.end()-1;
 }
 
 void ListaNodos::prev(){
     int dist = distance(vect.begin(),ptr);
     ptr = vect.begin();
-    for(int i=0;i<dist;i++) advance(ptr,1);
+    for(int i=0;i<dist-1;i++) advance(ptr,1);
 }
 
 void ListaNodos::next(){
@@ -106,10 +106,15 @@ void ListaNodos::clear(){
 }
 
 Nodo ListaNodos::getCurr(){
-    return *ptr;
+    Nodo nodoAux;
+    if(len()==0) return nodoAux;
+    else nodoAux = vect[distance(vect.begin(),ptr)];
+    return nodoAux;
 }
 
 Nodo ListaNodos::getNodo(unsigned int pos){
+    Nodo nodoAux;
+    if(pos<0 || pos>len()-1) return nodoAux;
     return vect[pos];
 }
 

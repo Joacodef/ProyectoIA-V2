@@ -185,21 +185,17 @@ void ListaVariables::moveToStart(){
 }
 
 void ListaVariables::moveToEnd(){
-    ptr = vect.end();
+    ptr = vect.end()-1;
 }
 
 void ListaVariables::prev(){
     int dist = distance(vect.begin(),ptr);
     ptr = vect.begin();
-    for(int i=0;i<dist;i++) advance(ptr,1);
+    for(int i=0;i<dist-1;i++) advance(ptr,1);
 }
 
 void ListaVariables::next(){
     if(ptr!=vect.end())advance(ptr,1);
-}
-
-void ListaVariables::clear(){
-    vect.clear();
 }
 
 Variable ListaVariables::getCurr(){
@@ -212,7 +208,7 @@ Variable ListaVariables::getCurr(){
 
 Variable ListaVariables::getVariable(unsigned int pos){
     Variable varAux;
-    if(pos<0 || pos>len()-1) return varAux;
+    if(pos<0 || pos>len()-1 || len()<1) return varAux;
     return vect[pos];
 }
 
@@ -275,6 +271,7 @@ void ListaVariables::printNodos(){
 }
 
 Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int tiempoServicio, int tiempoRecarga){
+
     Vehiculo vehi = Vehiculo(velocidad, tiempoServicio, tiempoRecarga);
     Variable siguiente;
     Variable anterior;
@@ -285,15 +282,15 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
     }
 
     if(var.nodoAsignado.tipo=='d'){
-        //si estamos en un depot debemos determinar si hay que avanzar o retroceder
+        //Si estamos en un depot debemos determinar si hay que avanzar o retroceder
         
         siguiente = getVariable(pos+1);
         goToPos(abs(pos));
         anterior = getVariable(pos-1);
         goToPos(abs(pos));
-
-        if((abs(pos)==len() || siguiente.nodoAsignado.tipo=='d') && getPos() > 0){
-             //Retroceder hasta llegar a un depot 
+        
+        //Comprobar si se está al final de la lista o adyacente detras de un depot
+        if((abs(pos)==len()-1 || siguiente.nodoAsignado.tipo=='d') && getPos() > 0){
             prev();
             while(getCurr().nodoAsignado.tipo!='d'){
                 //Retroceder hasta llegar a un depot
@@ -304,14 +301,14 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
             do{//avanzar hasta llegar a un depot y agregarlo
                 next();
                 vehi.agregarParada(getCurr().nodoAsignado);
-            }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len()  );             
+            }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len()-1  );             
         }
         else if(getPos()==0 || anterior.nodoAsignado.tipo=='d'){
             vehi.agregarParada(getCurr().nodoAsignado); 
             do{//avanzar agregando paradas
                 next();
                 vehi.agregarParada(getCurr().nodoAsignado);                    
-            }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len() );  
+            }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len()-1 );  
         }
     }
     else{

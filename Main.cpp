@@ -31,24 +31,24 @@ int main() {
             
             inst = extraerArchivo(&nodos,nombreArchivo);
 
-            depot = nodos.getNodo(1);
+            depot = nodos.getNodo(0);
 
             for(int i=0;i<inst.numEstaciones;i++){
-                estaciones.append(nodos.getNodo(i+2));                
+                estaciones.append(nodos.getNodo(i+1));                
             }
             for(int i=0;i<inst.numClientes;i++){
-                clientes.append(nodos.getNodo(i+inst.numEstaciones+2));                
+                clientes.append(nodos.getNodo(i+inst.numEstaciones+1));                
             }
 
             time(&start);
-
+            //cout<<depot.tipo<<"\n";
             ListaVehiculos vehiculos = generarSoluciones(500,inst,clientes,estaciones,depot);
-            //cout<<"-----SOLUCION FINAL-----\n";
-            //vehiculos.mostrar();
+            cout<<"-----SOLUCION FINAL-----\n";
+            vehiculos.mostrar();
             time(&end);
             tiempoEjecucion = double(end-start)/ double(CLOCKS_PER_SEC);
             
-            generarOutput(vehiculos,nombreArchivo,&inst,tiempoEjecucion);
+            //generarOutput(vehiculos,nombreArchivo,&inst,tiempoEjecucion);
 
             estaciones.free();
             clientes.free();
