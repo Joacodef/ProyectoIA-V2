@@ -64,7 +64,7 @@ class ListaNodos{
         void append(Nodo node);
         void remove(int pos);
         void removeNext();
-        Nodo pop();
+        void pop();
         void moveToStart();
         void moveToEnd();
         void prev();
@@ -141,15 +141,14 @@ void ListaNodos::removeNext(){
     std::free(aux);
 }
 
-Nodo ListaNodos::pop(){
+void ListaNodos::pop(){
     Nodo nodoAux;
-    if(*listSize==0) return nodoAux;
+    if(*listSize==0) return;
     moveToEnd();
     nodoAux = curr->data;
     prev();
     removeNext();
     moveToStart();
-    return nodoAux;
 }
 
 void ListaNodos::moveToStart(){
@@ -181,7 +180,7 @@ void ListaNodos::next(){
 void ListaNodos::clear(){
     if(*listSize!=0){
         moveToStart();
-        while(*listSize>1){
+        while(*listSize>0){
             removeNext();
         }
     }

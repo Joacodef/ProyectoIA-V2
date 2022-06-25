@@ -13,8 +13,8 @@ int main() {
     time_t start, end;
     string nombreArchivo = "";
     double tiempoEjecucion = 0.0;
-    for(int i=1;i<=2;i++){
-        for(int j=1;j<=20;j++){
+    for(int i=1;i<=1;i++){
+        for(int j=1;j<=1;j++){
             nombreArchivo = "";
             //tiempoEjecucion = 0.0;
             if(j<10){

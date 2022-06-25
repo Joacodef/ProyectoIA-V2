@@ -229,8 +229,9 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             }
         }//***FIN DEL LOOP CHICO***
         contadorIter ++;
-
+        //vehiAux.free();
     }//***FIN DEL LOOP PRINCIPAL***
+    //variables.free();
     return mejorSolucion;
 }
 

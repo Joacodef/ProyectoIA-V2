@@ -4,3 +4,4 @@ main
 *.out
 test.cpp
 *.code-workspace
+.vscode

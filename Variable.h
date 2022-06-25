@@ -25,6 +25,7 @@ class Variable{
         bool dominioTieneCliente();
         ListaNodos quitarClientesDominio();
         ListaNodos quitarEstacionesDominio();
+        void free();
 };
 
 Variable::Variable(){
@@ -119,6 +120,11 @@ ListaNodos Variable::quitarEstacionesDominio(){
     return domSinEstaciones;
 }
 
+void Variable::free(){
+    delete(&nodoAsignado);
+    dominio.free();
+}
+
 typedef struct tVar{
     Variable data;
     struct tVar *next;
@@ -138,7 +144,7 @@ class ListaVariables{
         void append(Variable vari); 
         void remove(unsigned int pos);
         void removeNext();
-        Variable pop();
+        void pop();
         void moveToStart();
         void moveToEnd();
         void prev();
@@ -194,18 +200,19 @@ void ListaVariables::removeNext(){
     tVar *aux = curr->next;
     curr->next = curr->next->next;
     listSize--;
+    //Variable ptr = aux->data;
+    //delete(&ptr);
     std::free(aux);
 }
 
-Variable ListaVariables::pop(){
+void ListaVariables::pop(){
     Variable vehiAux;
-    if(listSize==0) return vehiAux;
+    if(listSize==0) return;
     moveToEnd();
     vehiAux = curr->data;
     prev();
     removeNext();
     moveToStart();
-    return vehiAux;
 }
 
 void ListaVariables::moveToStart(){
@@ -236,8 +243,9 @@ void ListaVariables::next(){
 
 void ListaVariables::clear(){
     moveToStart();
-    while(listSize>0){
-        removeNext();
+    for(int i = len();i>0;i--){
+        getVariable(i).free();
+        remove(i);
     }
 }
 
@@ -268,6 +276,7 @@ void ListaVariables::goToPos(unsigned int pos){
 
 void ListaVariables::free(){
     clear();
+    (*head).data.free();
     std::free(head);
 }
 

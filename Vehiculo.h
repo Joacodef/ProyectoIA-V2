@@ -25,6 +25,7 @@ class Vehiculo{
         int tiempoTranscurrido();
         double distanciaTotalRecorrida();
         double distanciaDesdeRecarga();
+        void free();
 };
 
 Vehiculo::Vehiculo(){
@@ -88,6 +89,9 @@ double Vehiculo::distanciaDesdeRecarga(){
     return distancia;
 }
 
+void Vehiculo::free(){
+    recorrido.free();
+}
 
 typedef struct tVehi{
     Vehiculo data;
@@ -108,7 +112,7 @@ class ListaVehiculos{
         void append(Vehiculo vehi); 
         void remove(unsigned int pos);
         void removeNext();
-        Vehiculo pop();
+        void pop();
         void moveToStart();
         void moveToEnd();
         void prev();
@@ -149,6 +153,7 @@ void ListaVehiculos::remove(unsigned int pos){
     if(pos>listSize) return;
     goToPos(pos);
     prev();
+    getVehiculo(pos).free();
     removeNext();
     moveToStart();
 }
@@ -157,20 +162,20 @@ void ListaVehiculos::removeNext(){
     if(curr==tail) return;
     if(curr->next == tail) tail = curr;
     tVehi *aux = curr->next;
+    //(*aux).data.free();
     curr->next = curr->next->next;
     listSize--;
     std::free(aux);
 }
 
-Vehiculo ListaVehiculos::pop(){
+void ListaVehiculos::pop(){
     Vehiculo vehiAux;
-    if(listSize==0) return vehiAux;
+    if(listSize==0) return;
     moveToEnd();
     vehiAux = curr->data;
     prev();
     removeNext();
     moveToStart();
-    return vehiAux;
 }
 
 void ListaVehiculos::moveToStart(){
