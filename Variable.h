@@ -77,7 +77,7 @@ ListaNodos Variable::dominioSoloClientes(){
     Nodo nodoAux;
     if(dominio.len()<1) return domCli;
     for(unsigned int i=0;i<dominio.len();i++){
-        nodoAux = dominio.getNodo(i+1);
+        nodoAux = dominio.getNodo(i);
         if(nodoAux.tipo=='c'){
             domCli.append(nodoAux);
         }
@@ -90,7 +90,7 @@ bool Variable::dominioTieneCliente(){
     Nodo nodoAux;
     if(dominio.len()<1) return tieneCliente;
     for(unsigned int i=0;i<dominio.len();i++){
-        nodoAux = dominio.getNodo(i+1);
+        nodoAux = dominio.getNodo(i);
         if(nodoAux.tipo=='c'){
             return true;
         }
@@ -100,7 +100,7 @@ bool Variable::dominioTieneCliente(){
 
 ListaNodos Variable::quitarClientesDominio(){
     ListaNodos domSinClientes;
-    for(unsigned int i = dominio.len(); i>0;i--){
+    for(unsigned int i = dominio.len()-1; i>=0;i--){
         if(dominio.getNodo(i).tipo == 'c'){
             dominio.remove(i);
         }
@@ -111,7 +111,7 @@ ListaNodos Variable::quitarClientesDominio(){
 
 ListaNodos Variable::quitarEstacionesDominio(){
     ListaNodos domSinEstaciones;
-    for(unsigned int i = dominio.len(); i>0;i--){
+    for(unsigned int i = dominio.len()-1; i>=0;i--){
         if(dominio.getNodo(i).tipo == 'f'){
             dominio.remove(i);
         }
@@ -132,18 +132,14 @@ typedef struct tVar{
 
 
 class ListaVariables{
-    tVar *head;
-    tVar *tail;
-    tVar *curr;
-    unsigned int listSize;
-    unsigned int pos;
-    //ListaVehiculos vehiculosEnUso;
+    vector<Variable> vect;
+    vector<Variable>::iterator ptr;
+
     public:
         ListaVariables();
         void insertInFront(Variable item);
         void append(Variable vari); 
         void remove(unsigned int pos);
-        void removeNext();
         void pop();
         void moveToStart();
         void moveToEnd();
@@ -156,7 +152,6 @@ class ListaVariables{
         void goToPos(unsigned int pos);
         void free();
         ListaNodos clientesVisitados();
-        //void agregarVehiculo(Vehiculo vehi);
         Variable getVariable(unsigned int pos);
         void printNodos();
         int find(Variable var);
@@ -166,128 +161,88 @@ class ListaVariables{
 };
 
 ListaVariables::ListaVariables(){
-    head = tail = curr = (tVar*)malloc(sizeof(tVar)); // Siempre es la cabecera
-    listSize = 0;
-    pos = 0;
-}
-
-void ListaVariables::insertInFront(Variable item){
-    tVar *aux = curr->next;
-    curr->next = (tVar*)malloc(sizeof(tVar));
-    curr->next->data = item;
-    curr->next->next = aux;
-    if(curr == tail) tail = curr->next;
-    listSize++;
+    vect;
+    ptr = vect.begin();
 }
 
 void ListaVariables::append(Variable var){
-    moveToEnd();
-    insertInFront(var);
-    moveToStart();
+    if(len()==1) vect.begin();
+    vect.push_back(var);
 }
 
 void ListaVariables::remove(unsigned int pos){
-    if(pos>listSize) return;
-    goToPos(pos);
-    prev();
-    removeNext();
-    moveToStart();
-}
-
-void ListaVariables::removeNext(){
-    if(curr==tail) return;
-    if(curr->next == tail) tail = curr;
-    tVar *aux = curr->next;
-    curr->next = curr->next->next;
-    listSize--;
-    //Variable ptr = aux->data;
-    //delete(&ptr);
-    std::free(aux);
+    ptr = vect.begin();
+    advance(ptr,pos);
+    vect.erase(ptr++);
 }
 
 void ListaVariables::pop(){
-    Variable vehiAux;
-    if(listSize==0) return;
-    moveToEnd();
-    vehiAux = curr->data;
-    prev();
-    removeNext();
-    moveToStart();
+    vect.pop_back();
 }
 
 void ListaVariables::moveToStart(){
-    curr=head;
-    pos=0;
+    ptr = vect.begin();
 }
 
 void ListaVariables::moveToEnd(){
-    curr=tail;
-    pos=listSize;
+    ptr = vect.end();
 }
 
 void ListaVariables::prev(){
-    tVar *temp;
-    if (curr==head) return;
-    temp = head;
-    while (temp->next != curr) temp = temp->next;
-    curr = temp;
-    pos--;
+    int dist = distance(vect.begin(),ptr);
+    ptr = vect.begin();
+    for(int i=0;i<dist;i++) advance(ptr,1);
 }
 
 void ListaVariables::next(){
-    if (curr != tail){
-        curr = curr->next; 
-        pos++;
-    } 
+    if(ptr!=vect.end())advance(ptr,1);
 }
 
 void ListaVariables::clear(){
-    moveToStart();
-    for(int i = len();i>0;i--){
-        getVariable(i).free();
-        remove(i);
-    }
+    vect.clear();
 }
 
 Variable ListaVariables::getCurr(){
-    return curr->data;
+    Variable varAux;
+    if(len()==0) return varAux;
+    else varAux = vect[distance(vect.begin(),ptr)];
+    return varAux;
 }
 
 
 Variable ListaVariables::getVariable(unsigned int pos){
     Variable varAux;
-    if(pos>listSize) return varAux;
-    goToPos(pos);
-    varAux = curr->data;
-    return varAux;
+    if(pos<0 || pos>len()-1) return varAux;
+    return vect[pos];
 }
 
-unsigned int ListaVariables::getPos(){return pos;}
+unsigned int ListaVariables::getPos(){return distance(vect.begin(),ptr);}
 
-unsigned int ListaVariables::len(){return listSize;}
+unsigned int ListaVariables::len(){return vect.size();}
 
 void ListaVariables::goToPos(unsigned int pos){
-    moveToStart();
-    if(pos>listSize) return;
+    ptr = vect.begin();
+    if(pos>len()) return;
     for(unsigned int i=0;i<pos;i++){
         next();
     }
 }
 
 void ListaVariables::free(){
-    clear();
-    (*head).data.free();
-    std::free(head);
+    for (unsigned int i = 0; i < vect.size(); i++){
+        vect[i].dominio.free();
+    }
+    vect.clear();
 }
 
 ListaNodos ListaVariables::clientesVisitados(){
     ListaNodos clientes = ListaNodos();
-    if(listSize<1) {
+    if(len()<1) {
         return clientes;
     }
-    for(unsigned int i = 0;i<listSize;i++){
-        if(getVariable(i+1).nodoAsignado.tipo=='c'){
-            clientes.append(getVariable(i+1).nodoAsignado);
+    for(unsigned int i = 0;i<len();i++){
+        if(getVariable(i).nodoAsignado.tipo=='c'){
+            clientes.append(getVariable(i).nodoAsignado);
         }
     }
     return clientes;
@@ -299,7 +254,6 @@ ListaVehiculos ListaVariables::extraerSolucionActual(double velocidad, int tiemp
     moveToStart();
     unsigned int largo = 0;
     unsigned int posAux = 0;
-    next();
 
     while(posAux+largo<len()){
         posAux = getPos();
@@ -313,8 +267,8 @@ ListaVehiculos ListaVariables::extraerSolucionActual(double velocidad, int tiemp
 
 void ListaVariables::printNodos(){
     Variable varAux;
-    for(unsigned int i=0;i<listSize;i++){
-        varAux = getVariable(i+1);
+    for(unsigned int i=0;i<len();i++){
+        varAux = getVariable(i);
         cout << varAux.nodoAsignado.ID << varAux.nodoAsignado.tipo << "-";
     }
     cout << "\n";
@@ -338,7 +292,7 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
         anterior = getVariable(pos-1);
         goToPos(abs(pos));
 
-        if((abs(pos)==listSize || siguiente.nodoAsignado.tipo=='d') && getPos() > 1){
+        if((abs(pos)==len() || siguiente.nodoAsignado.tipo=='d') && getPos() > 0){
              //Retroceder hasta llegar a un depot 
             prev();
             while(getCurr().nodoAsignado.tipo!='d'){
@@ -352,7 +306,7 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
                 vehi.agregarParada(getCurr().nodoAsignado);
             }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len()  );             
         }
-        else if(getPos()==1 || anterior.nodoAsignado.tipo=='d'){
+        else if(getPos()==0 || anterior.nodoAsignado.tipo=='d'){
             vehi.agregarParada(getCurr().nodoAsignado); 
             do{//avanzar agregando paradas
                 next();
@@ -370,7 +324,7 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
         do{//avanzar hasta llegar a un depot y agregarlo
             next();
             vehi.agregarParada(getCurr().nodoAsignado);            
-        }while(getCurr().nodoAsignado.tipo!='d' && getPos()!=len() );
+        }while(getCurr().nodoAsignado.tipo!='d' && getPos()!=len()-1 );
     }
     return vehi;
 }
@@ -378,8 +332,8 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
 int ListaVariables::find(Variable var){
     if(len()==0) return -1;
     for(unsigned int i=0;i<len();i++){
-        if(var.ID == getVariable(i+1).ID){
-            return i+1;
+        if(var.ID == getVariable(i).ID){
+            return i;
         }
     }
     return -1;

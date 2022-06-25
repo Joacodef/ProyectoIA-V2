@@ -4,23 +4,12 @@
 #include <fstream>
 #include <iomanip>
 #include <cmath>
+#include <vector>
+#include <iterator>
+#include <algorithm>
 
 using namespace std;
 
-/**********
- * 
-Clase Nodo:
-
-Representa los clientes, estaciones de recarga y el depósito. Guarda información
-toda la información sobre ellos que se obtiene desde los archivos de instancia:
-su ID, tipo y coodenadas. 
-
-El único método implementado es:
-
-mostrar() (void) - se utiliza para imprimir en pantalla la información del nodo.
-*
-*
-**************/
 
 class Nodo{
     public:
@@ -33,62 +22,11 @@ class Nodo{
         void mostrar();   
 };
 
-
-/**********
- * 
-Clase ListaNodos y struct tNodo:
-
-Implementación de el TDA de lista enlazada, donde los objetos son structs tNodo,
-que guardan un objecto de clase Nodo, y un puntero a Nodo que apunta al siguiente
-de la lista.
- 
-*
-*
-**************/
-
-typedef struct tNodo{
-    Nodo data;
-    struct tNodo *next;
-} tNodo;
-
-class ListaNodos{
-    tNodo *head;
-    tNodo *tail;
-    tNodo *curr;
-    unsigned int *listSize;
-    unsigned int pos;
-
-    public:
-        ListaNodos();
-        void insertInFront(Nodo item); //insertar en pos central
-        void append(Nodo node);
-        void remove(int pos);
-        void removeNext();
-        void pop();
-        void moveToStart();
-        void moveToEnd();
-        void prev();
-        void next();
-        void clear();
-        Nodo getNodo(unsigned int pos);
-        Nodo getCurr();
-        int find(Nodo node);
-        unsigned int getPos();
-        unsigned int len();
-        void goToPos(unsigned int pos);
-        void free();
-        string to_string();
-};
-
-
-//******** Implementación de métodos de la clase Nodo ************
-
 Nodo::Nodo(){
     ID = -1;
     tipo = '\0';
     longitud = 0.0;
     latitud = 0.0;
-    //restringidoTemp = false;
 }
 
 void Nodo::mostrar(){
@@ -99,144 +37,118 @@ void Nodo::mostrar(){
 }
 
 
-//******** Implementación de métodos de la clase ListaNodos ************
+class ListaNodos{
+    vector<Nodo> vect;
+    vector<Nodo>::iterator ptr;
+
+    public:
+        ListaNodos();
+        void insertInFront(Nodo item);
+        void append(Nodo node);
+        void remove(int pos);
+        void pop();
+        void moveToStart();
+        void moveToEnd();
+        void prev();
+        void next();
+        void clear();
+        Nodo getCurr();
+        Nodo getNodo(unsigned int pos);
+        int find(Nodo node);
+        unsigned int getPos();
+        unsigned int len();
+        void goToPos(unsigned int pos);
+        void free();
+        string to_string();
+};
+
 
 ListaNodos::ListaNodos(){
-    head = tail = curr = (tNodo*)malloc(sizeof(tNodo)); // Siempre es la cabecera
-    listSize = (unsigned int*)malloc(sizeof(unsigned int));
-    *listSize = 0;
-    pos = 0;
-}
-
-void ListaNodos::insertInFront(Nodo item){
-    tNodo *aux = curr->next;
-    curr->next = (tNodo*)malloc(sizeof(tNodo));
-    curr->next->data = item;
-    curr->next->next = aux;
-    if(curr == tail) tail = curr->next;
-    (*listSize)++;
+    vect;
+    ptr = vect.begin();
 }
 
 void ListaNodos::append(Nodo node){
-    moveToEnd();
-    insertInFront(node);
-    moveToStart();
+    if(len()==1) ptr = vect.begin();
+    vect.push_back(node);
 }
 
 void ListaNodos::remove(int pos){
-    if(pos<0) return;
-    if(abs(pos)>*listSize) return;
-    goToPos(pos);
-    prev();
-    removeNext();
-    moveToStart();
-}
-
-void ListaNodos::removeNext(){
-    if(curr==tail) return;
-    if(curr->next == tail) tail = curr;
-    tNodo *aux = curr->next;
-    curr->next = curr->next->next;
-    (*listSize)--;
-    std::free(aux);
+    ptr = vect.begin();
+    advance(ptr,pos);
+    vect.erase(ptr++);
 }
 
 void ListaNodos::pop(){
-    Nodo nodoAux;
-    if(*listSize==0) return;
-    moveToEnd();
-    nodoAux = curr->data;
-    prev();
-    removeNext();
-    moveToStart();
+    vect.pop_back();
 }
 
 void ListaNodos::moveToStart(){
-    curr=head;
-    pos=0;
+    ptr = vect.begin();
 }
 
 void ListaNodos::moveToEnd(){
-    curr=tail;
-    pos=*listSize;
+    ptr = vect.end();
 }
 
 void ListaNodos::prev(){
-    tNodo *temp;
-    if (curr==head) return;
-    temp = head;
-    while (temp->next != curr) temp = temp->next;
-    curr = temp;
-    pos--;
+    int dist = distance(vect.begin(),ptr);
+    ptr = vect.begin();
+    for(int i=0;i<dist;i++) advance(ptr,1);
 }
 
 void ListaNodos::next(){
-    if (curr != tail) {
-        curr = curr->next;
-        pos++;
-    }
+    if(ptr!=vect.end())advance(ptr,1);
 }
 
 void ListaNodos::clear(){
-    if(*listSize!=0){
-        moveToStart();
-        while(*listSize>0){
-            removeNext();
-        }
-    }
-}
-
-Nodo ListaNodos::getNodo(unsigned int pos){
-    Nodo nodoAux;
-    if(pos>*listSize) return nodoAux;
-    goToPos(pos);
-    nodoAux = curr->data;
-    return nodoAux;
+    vect.clear();
 }
 
 Nodo ListaNodos::getCurr(){
-    return curr->data;
+    return *ptr;
+}
+
+Nodo ListaNodos::getNodo(unsigned int pos){
+    return vect[pos];
 }
 
 bool compararNodos(Nodo nodo1, Nodo nodo2);
 
 int ListaNodos::find(Nodo node){
-    if(*listSize==0) return -1;
-    for(unsigned int i=0;i<*listSize;i++){
-        if(compararNodos(node,getNodo(i+1))){
-            return i+1;
+    for(int i = 0; i < len();i++){
+        if(compararNodos(vect[i],node)){
+            return i;
         }
     }
     return -1;
 }
 
-unsigned int ListaNodos::getPos(){return pos;}
+unsigned int ListaNodos::getPos(){return distance(vect.begin(),ptr);}
 
-unsigned int ListaNodos::len(){return *listSize;}
+unsigned int ListaNodos::len(){return vect.size();}
 
 void ListaNodos::goToPos(unsigned int pos){
-    moveToStart();
-    if(pos>*listSize) return;
+    ptr = vect.begin();
+    if(pos>len()) return;
     for(unsigned int i=0;i<pos;i++){
         next();
     }
 }
 
 void ListaNodos::free(){
-    clear();
-    std::free(head);
-    std::free(listSize);
+    vect.clear();
 }
 
 string ListaNodos::to_string(){
     string output = "\n";
     moveToStart();
-    if(*listSize != 0){
-        for(unsigned int i=0;i<(*listSize)-1;i++){
-            output += std::to_string(getNodo(i+1).ID) + getNodo(i+1).tipo + "-";
+    if(len() != 0){
+        for(unsigned int i=0;i<len()-1;i++){
+            output += std::to_string(getNodo(i).ID) + getNodo(i).tipo + "-";
             next();
         }
-        output += std::to_string(curr->data.ID) + curr->data.tipo;
+        output += std::to_string(getNodo(len()-1).ID) + getNodo(len()-1).tipo;
         while(output.length()<90){
             output += " ";
         }
@@ -247,15 +159,6 @@ string ListaNodos::to_string(){
     moveToStart();
     return output;
 }
-
-// *******************OTRAS FUNCIONES RELATIVAS A NODOS***************************
-
-/*
-    "concatenar" junta los elementos de dos listas enlazadas de nodos, uniendo el último
-    elemento del parámetro "lista1" con el primer elemento (saltándose el head, que no
-    guarda datos) del segundo parámetro "lista2". Retorna un objeto de clase ListaNodos.
-
-*/
 
 ListaNodos concatenar(ListaNodos lista1, ListaNodos lista2){
     //Con esto quedan los elementos de la lista1 seguidos de los de la lista2
@@ -282,10 +185,6 @@ bool nodosIguales(Nodo nodo1, Nodo nodo2){
     return false;
 }
 
-/*
-    "aRadianes" convierte el parámetro num, que se espera represente un ángulo medido
-    en grados, a radianes.
-*/
 
 double aRadianes(double num){
     double rad = MY_PI * (num/180.0);
@@ -296,10 +195,6 @@ double semiVerseno(float num){
     return pow(sin(num/2.0),2);
 }
 
-/*
-    "distanciaHaversine" usa la fórmula de semiverseno para calcular la distancia
-    entre dos puntos sobre una esfera, dadas sus coordenadas de longitud y latitud.
-*/
 
 double distanciaHaversine(double lon1, double lat1, double lon2, double lat2){
     double distancia = 0.0;
@@ -316,23 +211,12 @@ double distanciaHaversine(double lon1, double lat1, double lon2, double lat2){
     return distancia;
 }
 
-/*
-    "calcularDistancia" aplica la función distanciaHaversine pero puede recibir como parámetros
-    dos objetos de clase Nodo.
-*/
-
 double calcularDistancia(Nodo nodo1, Nodo nodo2){
     double distancia = 0.0;
     distancia = distanciaHaversine(nodo1.longitud,nodo1.latitud,
                                     nodo2.longitud,nodo2.latitud);
     return distancia;
 }
-
-/*
-    "nodoMenorDistancia" recibe un nodo (central) y una lista de nodos (conjunto) y calcula
-    la distancia desde el central a cada uno de los del conjunto, seleccionando y retornando
-    el nodo que tenga una distancia menor.
-*/
 
 Nodo nodoMenorDistancia(Nodo central, ListaNodos conjunto){
     double menor = 999999999.9;
@@ -349,10 +233,6 @@ Nodo nodoMenorDistancia(Nodo central, ListaNodos conjunto){
     return menorNodo;
 }
 
-/*
-    "compararNodos" determina si dos nodos son iguales segun su ID y su tipo.
-*/
-
 bool compararNodos(Nodo nodo1, Nodo nodo2){
     if(nodo1.ID == nodo2.ID && nodo1.tipo==nodo2.tipo) return true;
     return false;
@@ -368,17 +248,3 @@ bool compararListasNodos(ListaNodos list1, ListaNodos list2){
     }
     return respuesta;
 }
-
-/*
-//Funcion para calcular todas las distancias desde un nodo central a un conjunto de nodos.
-
-double *calcularTodasDistancias(Nodo centro, Nodo *demasNodos, int size){
-    double *distancias = (double*)malloc(sizeof(double)*size);
-    for(int i=0; i<size;i++){
-        distancias[i] = 0.0;
-        distancias[i] = calcularDistancia(centro.longitud,centro.latitud,
-                                    demasNodos[i].longitud,demasNodos[i].latitud);
-    }
-    return distancias;
-}
-*/

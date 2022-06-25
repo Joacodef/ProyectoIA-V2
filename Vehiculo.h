@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <iterator>
+#include <algorithm>
 
 using namespace std;
 
@@ -101,11 +103,9 @@ typedef struct tVehi{
 //ListaVehiculos tambien es una lista enlazada
 
 class ListaVehiculos{
-    tVehi *head;
-    tVehi *tail;
-    tVehi *curr; 
-    unsigned int listSize;
-    unsigned int pos;
+    vector<Vehiculo> vect;
+    vector<Vehiculo>::iterator ptr;
+
     public:
         ListaVehiculos();
         void insertInFront(Vehiculo item);
@@ -129,129 +129,82 @@ class ListaVehiculos{
 };
 
 ListaVehiculos::ListaVehiculos(){
-    head = tail = curr = (tVehi*)malloc(sizeof(tVehi)); // Siempre es la cabecera
-    listSize = 0;
-    pos = 0;
-}
-
-void ListaVehiculos::insertInFront(Vehiculo item){
-    tVehi *aux = curr->next;
-    curr->next = (tVehi*)malloc(sizeof(tVehi));
-    curr->next->data = item;
-    curr->next->next = aux;
-    if(curr == tail) tail = curr->next;
-    listSize++;
+    vect;
+    ptr = vect.begin();
 }
 
 void ListaVehiculos::append(Vehiculo vehi){
-    moveToEnd();
-    insertInFront(vehi);
-    moveToStart();
+    if(len()==1) ptr = vect.begin();
+    vect.push_back(vehi);
 }
 
 void ListaVehiculos::remove(unsigned int pos){
-    if(pos>listSize) return;
-    goToPos(pos);
-    prev();
-    getVehiculo(pos).free();
-    removeNext();
-    moveToStart();
-}
-
-void ListaVehiculos::removeNext(){
-    if(curr==tail) return;
-    if(curr->next == tail) tail = curr;
-    tVehi *aux = curr->next;
-    //(*aux).data.free();
-    curr->next = curr->next->next;
-    listSize--;
-    std::free(aux);
+    ptr = vect.begin();
+    advance(ptr,pos);
+    vect.erase(ptr++);
 }
 
 void ListaVehiculos::pop(){
-    Vehiculo vehiAux;
-    if(listSize==0) return;
-    moveToEnd();
-    vehiAux = curr->data;
-    prev();
-    removeNext();
-    moveToStart();
+    vect.pop_back();
 }
 
 void ListaVehiculos::moveToStart(){
-    curr=head;
-    pos=0;
+    ptr = vect.begin();
 }
 
 void ListaVehiculos::moveToEnd(){
-    curr=tail;
-    pos=listSize;
+    ptr = vect.end();
 }
 
 void ListaVehiculos::prev(){
-    tVehi *temp;
-    if (curr==head) return;
-    temp = head;
-    while (temp->next != curr) temp = temp->next;
-    curr = temp;
-    pos--;
+    int dist = distance(vect.begin(),ptr);
+    ptr = vect.begin();
+    for(int i=0;i<dist;i++) advance(ptr,1);
 }
 
 void ListaVehiculos::next(){
-    if (curr != tail){
-        curr = curr->next; 
-        pos++;
-    } 
-}
-
-void ListaVehiculos::clear(){
-    moveToStart();
-    while(listSize>0){
-        removeNext();
-    }
+    if(ptr!=vect.end())advance(ptr,1);
 }
 
 Vehiculo ListaVehiculos::getVehiculo(unsigned int pos){
-    Vehiculo vehiAux;
-    if(pos>listSize) return vehiAux;
-    goToPos(pos);
-    vehiAux = curr->data;
-    return vehiAux;
+    return vect[pos];
 }
 
-unsigned int ListaVehiculos::getPos(){return pos;}
+unsigned int ListaVehiculos::getPos(){return distance(vect.begin(),ptr);}
 
-unsigned int ListaVehiculos::len(){return listSize;}
+unsigned int ListaVehiculos::len(){return vect.size();}
 
 void ListaVehiculos::goToPos(unsigned int pos){
-    moveToStart();
-    if(pos>listSize) return;
+    ptr = vect.begin();
+    if(pos>len()) return;
     for(unsigned int i=0;i<pos;i++){
         next();
     }
 }
 
 void ListaVehiculos::free(){
-    clear();
-    std::free(head);
+    for (unsigned int i = 0; i < vect.size(); i++){
+        vect[i].recorrido.free();
+    }
+    vect.clear();
 }
 
 double ListaVehiculos::calcularDistTotal(){
     double distancia = 0.0;
-    if(listSize < 1) return distancia;
-    for(unsigned int i = 0; i<listSize;i++){
-        distancia += getVehiculo(i+1).distanciaTotalRecorrida();
+    if(vect.size() < 1) return distancia;
+    for(unsigned int i = 0; i<vect.size();i++){
+        distancia += getVehiculo(i).distanciaTotalRecorrida();
     }
     return distancia;
 }
 
 Vehiculo ListaVehiculos::getCurr(){
-    return curr->data;
+   return *ptr;
 }
 
 void ListaVehiculos::mostrar(){
-    for(unsigned int i=0;i<listSize;i++){
-        Vehiculo vehi = getVehiculo(i+1);
+    for(unsigned int i=0;i<vect.size();i++){
+        Vehiculo vehi = getVehiculo(i);
         cout << vehi.recorrido.to_string() <<"\n";
     }
 }
