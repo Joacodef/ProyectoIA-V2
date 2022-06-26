@@ -50,22 +50,22 @@ string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisit
 
 ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos clientes, 
                                   ListaNodos estaciones, Nodo depot){
-    ListaVehiculos mejorSolucion;
-    ListaVehiculos solucionCandidata;
-    int contadorIter = 0;
-    ListaVariables variables;
+    int contadorIter = 0;   
     Nodo nodoAux;
     Variable variableActual;
-    ListaNodos dominioAcotado;
-    Vehiculo vehiAux = Vehiculo(inst.velocidad, inst.tiempoServicio, inst.tiempoRecarga);
+    ListaNodos dominioAcotado,clientesRestantes;
+    ListaVehiculos mejorSolucion,solucionCandidata;
+    ListaVariables variables;
     bool backtracking = false;
     bool variableSeAsigno = false;
     double distMejorSolucion = INFINITY;
     double distActual = 0.0;
     string restriccion;
 
+    Vehiculo vehiAux = Vehiculo(inst.velocidad, inst.tiempoServicio, inst.tiempoRecarga);
     variableActual.asignarNodo(depot);
     variables.append(variableActual);
+    clientesRestantes = concatenar(clientes,estaciones);
 
     /***************LOOP PRINCIPAL******************/
     while(contadorIter < maxIteraciones){
@@ -108,23 +108,24 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             solucionCandidata = variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga);
             distActual = solucionCandidata.calcularDistTotal();
 
-            cout << "\n\n---------SOLUCION CANDIDATA-----------\n";
-            solucionCandidata.mostrar();
+            //cout << "\n\n---------SOLUCION CANDIDATA-----------\n";
+            //solucionCandidata.mostrar();
 
             if(distActual < distMejorSolucion){
                 mejorSolucion = solucionCandidata;
                 distMejorSolucion = distActual;
             } 
             
-            //Ahora se borra el depot de la solución y hacemos backtracking.
+            //Ahora se borra el depot de la solución y se hace backtracking.
             //Para hacer BT se guarda el dominio de la ultima variable y le elimina de la lista.
             variables.pop();
             variables.moveToEnd();
             backtracking = true;
             variableSeAsigno = false; 
-            dominioAcotado = variables.getCurr().dominio; 
+            dominioAcotado = variables.getCurr().dominio;
+            variables.moveToEnd(); 
+            if(variables.getCurr().nodoAsignado.tipo == 'c') clientesRestantes.append(variables.getCurr().nodoAsignado);
             variables.pop();          
-            variables.moveToEnd();
             contadorIter++; 
             continue;
         }
@@ -133,7 +134,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         //Se comprueba si estamos entrando al loop por backtracking o no
         if(!backtracking){
             //Si no es backtracking, se declara la nueva variable que se asignará en esta iteración
-            variableActual = Variable(clientes,estaciones);
+            variableActual = Variable(clientesRestantes);
         }
         else{
             //Si hicimos backtracking, la variable auxiliar "variableActual" parte con el dominio (acotado)
@@ -167,6 +168,8 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                         variableActual.asignarNodo(nodoAux);
                         variableActual.quitarDelDominio(variableActual.nodoAsignado);
                         variables.append(variableActual);
+                        variables.moveToEnd();
+                        if(variables.getCurr().nodoAsignado.tipo == 'c') clientesRestantes.remove(clientesRestantes.find(variables.getCurr().nodoAsignado));
                         variableSeAsigno = true;
                     }
                     else if(restriccion == "combustible"){
@@ -194,18 +197,13 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                         //Si la estación cumple todas las restricciones, se pasa por ella.
                         variableActual.asignarNodo(nodoAux);
                         variableActual.quitarDelDominio(variableActual.nodoAsignado);
+                        variables.append(variableActual);
+                        variableSeAsigno = true;
                     }
                     else if(restriccion == "combustible" || restriccion == "tiempo" || restriccion == "sinSentido"){
-                        //Si hay alguna que no cumpla, no se necesita intentar con niguna otra
                         variableActual.dominio = variableActual.quitarEstacionesDominio();
                         break;  
-                    }
-                    /*
-                    else if(restriccion == "dosEstaciones"){
-                        //
-                    }*/
-                    variables.append(variableActual);
-                    variableSeAsigno = true;
+                    }                    
                 }  
             }
 
@@ -228,6 +226,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 variableSeAsigno = false;
                 //se quita variable de la lista, pero se guarda su dominio para darselo a la variableActual en la sgte iteracion
                 variables.moveToEnd();
+                if(variables.getCurr().nodoAsignado.tipo == 'c') clientesRestantes.append(variables.getCurr().nodoAsignado);
                 dominioAcotado = variables.getCurr().dominio;
                 variables.pop();
                 variables.moveToEnd();              

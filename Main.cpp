@@ -8,13 +8,14 @@ using namespace std;
 
 int Variable::id_actual = 1;
 int Vehiculo::id_actual = 1;
+int numInstancia = 12;
 
 int main() {
     time_t start, end;
     string nombreArchivo = "";
     double tiempoEjecucion = 0.0;
     for(int i=1;i<=1;i++){
-        for(int j=1;j<=1;j++){
+        for(int j=numInstancia;j<=numInstancia;j++){
             nombreArchivo = "";
             //tiempoEjecucion = 0.0;
             if(j<10){
@@ -40,14 +41,13 @@ int main() {
                 clientes.append(nodos.getNodo(i+inst.numEstaciones+1));                
             }
             time(&start);
-            ListaVehiculos vehiculos = generarSoluciones(10000,inst,clientes,estaciones,depot);
+            ListaVehiculos vehiculos = generarSoluciones(500,inst,clientes,estaciones,depot);
             cout<<"-----SOLUCION FINAL-----\n";
             vehiculos.mostrar();
             time(&end);
             tiempoEjecucion = double(end-start)/ double(CLOCKS_PER_SEC);
             
             //generarOutput(vehiculos,nombreArchivo,&inst,tiempoEjecucion);
-
 
             cout<<"Procesada instancia "<<nombreArchivo<<"\n";
         }
