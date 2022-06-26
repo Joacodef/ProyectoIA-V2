@@ -85,7 +85,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
 
         /*********PARA RUTEO**********/
 
-        //variables.printNodos();
+        variables.printNodos();
 
         /******Verificar si se visitaron todos los clientes (nueva solución candidata)******/
         if(clientesVisitados.len()>=abs(inst.numClientes)){
@@ -98,22 +98,29 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             solucionCandidata = variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga);
             distActual = solucionCandidata.calcularDistTotal();
 
-            //cout << "\n\n---------SOLUCION CANDIDATA-----------\n";
-            //solucionCandidata.mostrar();
+            cout << "\n\n---------SOLUCION CANDIDATA-----------\n";
+            solucionCandidata.mostrar();
 
             if(distActual < distMejorSolucion){
                 mejorSolucion = solucionCandidata;
                 distMejorSolucion = distActual;
-            } 
-            
-            //Ahora se borra el depot de la solución y se hace backtracking.
-            //Para hacer BT se guarda el dominio de la ultima variable y le elimina de la lista.
-            variables.pop();
+            }
+            //Quitar todos las variables correspondientes al ultimo recorrido, más el depot del último recorrido (backtracking hasta recorrido anterior)
+            for(int i=0;i<vehiAux.recorrido.len()+1;i++){
+                variables.moveToEnd();
+                if(variables.getCurr().nodoAsignado.tipo == 'c'){ 
+                    clientesRestantes.append(variables.getCurr().nodoAsignado);
+                    clientesVisitados.remove(clientesVisitados.find(variables.getCurr().nodoAsignado));
+                }
+                variables.pop();
+            }
             variables.moveToEnd();
+            //Luego se guarda el dominio de la última variable del recorrido anterior, y se elimina de la lista
             backtracking = true;
             variableSeAsigno = false; 
             dominioAcotado = variables.getCurr().dominio;
-            variables.moveToEnd(); 
+            variables.moveToEnd();
+            //Actualizar listas que hacen seguimiento de clientes visitados y restantes 
             if(variables.getCurr().nodoAsignado.tipo == 'c'){ 
                 clientesRestantes.append(variables.getCurr().nodoAsignado);
                 clientesVisitados.remove(clientesVisitados.find(variables.getCurr().nodoAsignado));
@@ -162,6 +169,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                         variableActual.quitarDelDominio(variableActual.nodoAsignado);
                         variables.append(variableActual);
                         variables.moveToEnd();
+                        ////Actualizar listas que hacen seguimiento de clientes visitados y restantes 
                         if(variables.getCurr().nodoAsignado.tipo == 'c'){
                             clientesRestantes.remove(clientesRestantes.find(variables.getCurr().nodoAsignado));
                             clientesVisitados.append(variables.getCurr().nodoAsignado);
@@ -222,6 +230,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 variableSeAsigno = false;
                 //se quita variable de la lista, pero se guarda su dominio para darselo a la variableActual en la sgte iteracion
                 variables.moveToEnd();
+                //Actualizar listas que hacen seguimiento de clientes visitados y restantes 
                 if(variables.getCurr().nodoAsignado.tipo == 'c'){
                     clientesRestantes.append(variables.getCurr().nodoAsignado);
                     clientesVisitados.remove(clientesVisitados.find(variables.getCurr().nodoAsignado));
