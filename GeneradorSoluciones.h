@@ -92,7 +92,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         variableSeAsigno = false;
         vehiAux = variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, 
                                                     inst.tiempoServicio,inst.tiempoRecarga);
-        variables.printNodos();
+        //variables.printNodos();
         //******Verificar si se visitaron todos los clientes (nueva solución candidata)******//
         if(variables.clientesVisitados().len()>=abs(inst.numClientes)){
 
