@@ -57,6 +57,8 @@ class ListaNodos{
         void clear();
         Nodo getCurr();
         Nodo getNodo(unsigned int pos);
+        Nodo *getCurrReal();
+        Nodo *getNodoReal(unsigned int pos);
         int find(Nodo node);
         unsigned int getPos();
         unsigned int len();
@@ -115,17 +117,17 @@ void ListaNodos::clear(){
     vect.clear();
 }
 
-Nodo ListaNodos::getCurr(){
+
+Nodo ListaNodos::getNodo(unsigned int pos){
+    if(pos<len() && len()>0) return vect[pos];
     Nodo nodoAux;
-    if(len()==0) return nodoAux;
-    else nodoAux = vect[distance(vect.begin(),ptr)];
     return nodoAux;
 }
 
-Nodo ListaNodos::getNodo(unsigned int pos){
+Nodo ListaNodos::getCurr(){
+    if(len()!=0) return vect[distance(vect.begin(),ptr)];
     Nodo nodoAux;
-    if(pos>len()-1 || len()<1) return nodoAux;
-    return vect[pos];
+    return nodoAux;
 }
 
 bool compararNodos(Nodo nodo1, Nodo nodo2);

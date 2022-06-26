@@ -176,9 +176,10 @@ void ListaVehiculos::moveToPos(unsigned int pos){
 }
 
 Vehiculo ListaVehiculos::getVehiculo(unsigned int pos){
+    if(pos<len() && len()>0) return vect[pos];
     Vehiculo vehiAux;
-    if(pos>len()-1 || len()<1) return vehiAux;
-    return vect[pos];
+    return vehiAux;
+    
 }
 
 Vehiculo ListaVehiculos::getCurr(){

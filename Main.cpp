@@ -42,7 +42,7 @@ int main() {
             time(&start);
             ListaVehiculos vehiculos = generarSoluciones(500,inst,clientes,estaciones,depot);
             cout<<"-----SOLUCION FINAL-----\n";
-            //vehiculos.mostrar();
+            vehiculos.mostrar();
             time(&end);
             tiempoEjecucion = double(end-start)/ double(CLOCKS_PER_SEC);
             

@@ -206,18 +206,16 @@ void ListaVariables::moveToPos(unsigned int pos){
     }
 }
 
-Variable ListaVariables::getCurr(){
+Variable ListaVariables::getVariable(unsigned int pos){
+    if(pos<len() && len()>0) return vect[pos];
     Variable varAux;
-    if(len()==0) return varAux;
-    else varAux = vect[distance(vect.begin(),ptr)];
     return varAux;
 }
 
-
-Variable ListaVariables::getVariable(unsigned int pos){
+Variable ListaVariables::getCurr(){
+    if(len()!=0) return vect[distance(vect.begin(),ptr)];
     Variable varAux;
-    if(pos<0 || pos>len()-1 || len()<1) return varAux;
-    return vect[pos];
+    return varAux;
 }
 
 unsigned int ListaVariables::getPos(){return distance(vect.begin(),ptr);}
