@@ -24,8 +24,7 @@ Instancia extraerInstancia(ifstream& archivo){
 void extraerNodos(ifstream& archivo, int numEstaciones, int numClientes, ListaNodos* nodos){
     Nodo nodoAux = Nodo();
     //Siguientes lineas del archivo:
-    for(int i = 1; i <= numClientes+numEstaciones+1; i++){
-        //Inicializar nodo para que valgrind no alegue:
+    for(int i = 0; i < numClientes+numEstaciones+1; i++){
         archivo >> nodoAux.ID;
         archivo >> nodoAux.tipo;
         archivo >> nodoAux.longitud;
@@ -44,7 +43,6 @@ Instancia extraerArchivo(ListaNodos* nodos, string nombreArchivo){
             cout << "\nERROR EN EXTRACCION DE INSTANCIA\n";
             exit(-1);
         }
-        //Almacenar nodos en variable de heap:
         extraerNodos(input,inst.numEstaciones,inst.numClientes,nodos);
     }
     else{

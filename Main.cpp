@@ -28,7 +28,7 @@ int main() {
             ListaNodos nodos = ListaNodos();
             ListaNodos estaciones = ListaNodos();
             ListaNodos clientes = ListaNodos();
-            
+        
             inst = extraerArchivo(&nodos,nombreArchivo);
 
             depot = nodos.getNodo(0);
@@ -39,20 +39,15 @@ int main() {
             for(int i=0;i<inst.numClientes;i++){
                 clientes.append(nodos.getNodo(i+inst.numEstaciones+1));                
             }
-
             time(&start);
-            //cout<<depot.tipo<<"\n";
             ListaVehiculos vehiculos = generarSoluciones(500,inst,clientes,estaciones,depot);
             cout<<"-----SOLUCION FINAL-----\n";
-            vehiculos.mostrar();
+            //vehiculos.mostrar();
             time(&end);
             tiempoEjecucion = double(end-start)/ double(CLOCKS_PER_SEC);
             
             //generarOutput(vehiculos,nombreArchivo,&inst,tiempoEjecucion);
 
-            estaciones.free();
-            clientes.free();
-            nodos.free();
 
             cout<<"Procesada instancia "<<nombreArchivo<<"\n";
         }

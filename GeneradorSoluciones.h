@@ -64,7 +64,10 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
     double distActual = 0.0;
     string restriccion;
 
-    //***************LOOP PRINCIPAL******************//
+    variableActual.asignarNodo(depot);
+    variables.append(variableActual);
+
+    /***************LOOP PRINCIPAL******************/
     while(contadorIter < maxIteraciones){
         /****Explicación general****/
         /*
@@ -87,9 +90,10 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         //vehiAux guardará al principio de cada iteración el recorrido en el que se esté en esta asignación
         variables.moveToEnd();
         variableSeAsigno = false;
-        if(variables.len()>1) vehiAux = variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, 
-                                                        inst.tiempoServicio,inst.tiempoRecarga);
-        
+        vehiAux = variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, 
+                                                    inst.tiempoServicio,inst.tiempoRecarga);
+        variables.printNodos();
+        if(contadorIter == 14) exit(0);
         //******Verificar si se visitaron todos los clientes (nueva solución candidata)******//
         if(variables.clientesVisitados().len()>=abs(inst.numClientes)){
 
@@ -128,20 +132,12 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         if(!backtracking){
             //Si no es backtracking, se declara la nueva variable que se asignará en esta iteración
             variableActual = Variable(clientes,estaciones);
-            if(contadorIter == 0){
-                //Si es la primera iteración, se asigna el depot de la instancia a la variable actual.
-                //variableActual = Variable(clientes,estaciones);
-                variableActual.asignarNodo(depot);
-                variables.append(variableActual);
-                contadorIter++;
-                continue;
-            }
         }
         else{
             //Si hicimos backtracking, la variable auxiliar "variableActual" parte con el dominio (acotado)
             //de la variable que se tenía antes al final de la lista.
-            backtracking = false;
             variableActual = Variable(dominioAcotado);
+            backtracking = false;
         }
 
         //Se verifica si el recorrido actual ya terminó, en cuyo caso se debe asignar un depot a la nueva variable
@@ -150,7 +146,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             variableActual.asignarNodo(depot);
             variables.append(variableActual);
         }
-        else{//*******************LOOP SECUNDARIO*******************//
+        else{/*******************LOOP SECUNDARIO*******************/
 
 
             //Se buscan asignaciones factibles para la nueva variable en un loop. Si el dominio esta vacío o se encontró
@@ -211,7 +207,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 }  
             }
 
-            //****CONDICIONES DE BACKTRACKING****//
+            /****CONDICIONES DE BACKTRACKING****/
             distActual = variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga).calcularDistTotal();
             if((variableActual.dominioVacio() && variableSeAsigno==false) || distActual > distMejorSolucion){
 
@@ -227,10 +223,10 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 variables.pop();
                 variables.moveToEnd();              
             }
-        }//***FIN DEL LOOP SECUNDARIO***
+        }/***FIN DEL LOOP SECUNDARIO***/
         contadorIter ++;
         //vehiAux.free();
-    }//***FIN DEL LOOP PRINCIPAL***
+    }/***FIN DEL LOOP PRINCIPAL***/
     //variables.free();
     return mejorSolucion;
 }

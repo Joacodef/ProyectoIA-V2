@@ -72,7 +72,7 @@ int Vehiculo::tiempoTranscurrido(){
 
 double Vehiculo::distanciaTotalRecorrida(){
     double distancia = 0.0;
-    for(unsigned int i = 1; i < recorrido.len();i++){
+    for(unsigned int i = 1; i < recorrido.len()-1;i++){
         distancia += calcularDistancia(recorrido.getNodo(i),recorrido.getNodo(i+1));
     }
     return distancia;
@@ -81,11 +81,13 @@ double Vehiculo::distanciaTotalRecorrida(){
 double Vehiculo::distanciaDesdeRecarga(){
     double distancia = 0.0;
     recorrido.moveToEnd();
+    //Vemos si hay una estacion en el recorrido. Si no hay, calcula la distancia total del recorrido
     while(recorrido.getCurr().tipo!='f'){
         recorrido.prev();
         if(compararNodos(recorrido.getCurr(),recorrido.getNodo(0))) return distanciaTotalRecorrida();
     }
-    for(unsigned int i = recorrido.getPos(); i < recorrido.len();i++){
+    //Si hay una estacion, se calcula la distancia de todos los pares de nodos hasta llegar al final
+    for(unsigned int i = recorrido.getPos(); i < recorrido.len()-1;i++){
         distancia += calcularDistancia(recorrido.getNodo(i),recorrido.getNodo(i+1));
     }
     return distancia;

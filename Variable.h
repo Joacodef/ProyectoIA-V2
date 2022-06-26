@@ -100,7 +100,7 @@ bool Variable::dominioTieneCliente(){
 
 ListaNodos Variable::quitarClientesDominio(){
     ListaNodos domSinClientes;
-    for(unsigned int i = dominio.len()-1; i>=0;i--){
+    for(int i = dominio.len()-1; i>=0;i--){
         if(dominio.getNodo(i).tipo == 'c'){
             dominio.remove(i);
         }
@@ -111,11 +111,12 @@ ListaNodos Variable::quitarClientesDominio(){
 
 ListaNodos Variable::quitarEstacionesDominio(){
     ListaNodos domSinEstaciones;
-    for(unsigned int i = dominio.len()-1; i>=0;i--){
+    for(int i = dominio.len()-1; i>=0;i--){
         if(dominio.getNodo(i).tipo == 'f'){
             dominio.remove(i);
         }
     }
+    cout<<dominio.to_string()<<"\n";
     domSinEstaciones = dominio;
     return domSinEstaciones;
 }
@@ -271,7 +272,6 @@ void ListaVariables::printNodos(){
 }
 
 Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int tiempoServicio, int tiempoRecarga){
-
     Vehiculo vehi = Vehiculo(velocidad, tiempoServicio, tiempoRecarga);
     Variable siguiente;
     Variable anterior;
@@ -280,29 +280,23 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
     else{ 
         return vehi;
     }
-
+    if(len()==1){vehi.agregarParada(var.nodoAsignado);return vehi;}
     if(var.nodoAsignado.tipo=='d'){
         //Si estamos en un depot debemos determinar si hay que avanzar o retroceder
-        
-        siguiente = getVariable(pos+1);
-        goToPos(abs(pos));
-        anterior = getVariable(pos-1);
-        goToPos(abs(pos));
-        
-        //Comprobar si se está al final de la lista o adyacente detras de un depot
+        //Comprobar si se está al final de la lista o detras de un depot(estamos al final de un recorrido)
         if((abs(pos)==len()-1 || siguiente.nodoAsignado.tipo=='d') && getPos() > 0){
             prev();
             while(getCurr().nodoAsignado.tipo!='d'){
-                //Retroceder hasta llegar a un depot
+                //Retroceder hasta llegar a un depot, para que la lista esté ordenada
                 prev();
             }
             //agregar depot
             vehi.agregarParada(getCurr().nodoAsignado);
-            do{//avanzar hasta llegar a un depot y agregarlo
+            do{// luego avanzar hasta llegar al depot y agregarlo
                 next();
                 vehi.agregarParada(getCurr().nodoAsignado);
             }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len()-1  );             
-        }
+        }//Comprobar si se está al principio de la lista o el anterior es un depot (estamos en el incio de un recorrido)
         else if(getPos()==0 || anterior.nodoAsignado.tipo=='d'){
             vehi.agregarParada(getCurr().nodoAsignado); 
             do{//avanzar agregando paradas
@@ -311,14 +305,13 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
             }while(getCurr().nodoAsignado.tipo!='d'&& getPos()!=len()-1 );  
         }
     }
-    else{
+    else{//Si no estamos en un depot, se retrocede hasta llegar a uno
         while(getCurr().nodoAsignado.tipo!='d'){
-            //Retroceder hasta llegar a un depot
             prev();
         }
         //agregar depot
         vehi.agregarParada(getCurr().nodoAsignado);
-        do{//avanzar hasta llegar a un depot y agregarlo
+        do{//avanzar hasta llegar a un depot o hasta el final
             next();
             vehi.agregarParada(getCurr().nodoAsignado);            
         }while(getCurr().nodoAsignado.tipo!='d' && getPos()!=len()-1 );

@@ -170,10 +170,10 @@ ListaNodos concatenar(ListaNodos lista1, ListaNodos lista2){
     ListaNodos concatenacion = ListaNodos();
     if(lista1.len()>0 && lista2.len()>0){
         for(unsigned int i=0;i<lista1.len();i++){
-            concatenacion.append(lista1.getNodo(i+1));
+            concatenacion.append(lista1.getNodo(i));
         }
         for(unsigned int i=0;i<lista2.len();i++){
-            concatenacion.append(lista2.getNodo(i+1));
+            concatenacion.append(lista2.getNodo(i));
         }   
     }
     else if(lista1.len()>0){
@@ -228,11 +228,11 @@ Nodo nodoMenorDistancia(Nodo central, ListaNodos conjunto){
     Nodo menorNodo;
     double distancia = 0.0;
     for(unsigned int i=0; i<conjunto.len();i++){
-        if(central.ID == conjunto.getNodo(i+1).ID && central.tipo == conjunto.getNodo(i+1).tipo) continue;
-        distancia = calcularDistancia(conjunto.getNodo(i+1),central);
+        if(central.ID == conjunto.getNodo(i).ID && central.tipo == conjunto.getNodo(i).tipo) continue;
+        distancia = calcularDistancia(conjunto.getNodo(i),central);
         if(distancia<menor){
             menor = distancia;
-            menorNodo = conjunto.getNodo(i+1);
+            menorNodo = conjunto.getNodo(i);
         }      
     }
     return menorNodo;
@@ -247,7 +247,7 @@ bool compararListasNodos(ListaNodos list1, ListaNodos list2){
     bool respuesta = true;
     if (list1.len()!=list2.len()) return !respuesta;
     for(unsigned int i=0;i<list1.len();i++){
-        if(!compararNodos(list1.getNodo(i+1),list2.getNodo(i+1))){
+        if(!compararNodos(list1.getNodo(i),list2.getNodo(i))){
             respuesta = false;
         }
     }
