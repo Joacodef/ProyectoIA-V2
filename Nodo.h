@@ -30,10 +30,12 @@ Nodo::Nodo(){
 }
 
 void Nodo::mostrar(){
-    cout << "\nID: " << ID;
-    cout << "\nTipo: " << tipo;
-    cout << "\nLongitud: " << longitud;
-    cout << "\nLatitud: " << latitud << "\n";
+    if(ID!=-1){
+        cout << "\nID: " << ID;
+        cout << "\nTipo: " << tipo;
+        cout << "\nLongitud: " << longitud;
+        cout << "\nLatitud: " << latitud << "\n";
+    }
 }
 
 
@@ -51,13 +53,13 @@ class ListaNodos{
         void moveToEnd();
         void prev();
         void next();
+        void moveToPos(unsigned int pos);
         void clear();
         Nodo getCurr();
         Nodo getNodo(unsigned int pos);
         int find(Nodo node);
         unsigned int getPos();
         unsigned int len();
-        void goToPos(unsigned int pos);
         void free();
         string to_string();
 };
@@ -98,7 +100,15 @@ void ListaNodos::prev(){
 }
 
 void ListaNodos::next(){
-    if(ptr!=vect.end())advance(ptr,1);
+    if(ptr!=vect.end()-1)advance(ptr,1);
+}
+
+void ListaNodos::moveToPos(unsigned int pos){
+    ptr = vect.begin();
+    if(pos>len()) return;
+    for(unsigned int i=0;i<pos;i++){
+        next();
+    }
 }
 
 void ListaNodos::clear(){
@@ -114,7 +124,7 @@ Nodo ListaNodos::getCurr(){
 
 Nodo ListaNodos::getNodo(unsigned int pos){
     Nodo nodoAux;
-    if(pos<0 || pos>len()-1) return nodoAux;
+    if(pos>len()-1 || len()<1) return nodoAux;
     return vect[pos];
 }
 
@@ -133,13 +143,7 @@ unsigned int ListaNodos::getPos(){return distance(vect.begin(),ptr);}
 
 unsigned int ListaNodos::len(){return vect.size();}
 
-void ListaNodos::goToPos(unsigned int pos){
-    ptr = vect.begin();
-    if(pos>len()) return;
-    for(unsigned int i=0;i<pos;i++){
-        next();
-    }
-}
+
 
 void ListaNodos::free(){
     vect.clear();

@@ -67,6 +67,7 @@ bool Variable::dominioVacio(){
 void Variable::asignarNodo(Nodo node){
     if(node.tipo=='d'){
         //si se asigna depot es porque no hay otra alternativa
+        //o se asigno porque antes habia un depot, o no se cumplian restricciones
         dominio.clear();
     }
     nodoAsignado=node;
@@ -116,7 +117,6 @@ ListaNodos Variable::quitarEstacionesDominio(){
             dominio.remove(i);
         }
     }
-    cout<<dominio.to_string()<<"\n";
     domSinEstaciones = dominio;
     return domSinEstaciones;
 }
@@ -138,7 +138,6 @@ class ListaVariables{
 
     public:
         ListaVariables();
-        void insertInFront(Variable item);
         void append(Variable vari); 
         void remove(unsigned int pos);
         void pop();
@@ -146,14 +145,14 @@ class ListaVariables{
         void moveToEnd();
         void prev();
         void next();
+        void moveToPos(unsigned int pos);
         void clear();
+        Variable getVariable(unsigned int pos);
         Variable getCurr();
         unsigned int getPos();
         unsigned int len();
-        void goToPos(unsigned int pos);
         void free();
         ListaNodos clientesVisitados();
-        Variable getVariable(unsigned int pos);
         void printNodos();
         int find(Variable var);
         ListaVehiculos extraerSolucionActual(double velocidad, int tiempoRecarga, int tiempoServicio);
@@ -199,6 +198,14 @@ void ListaVariables::next(){
     if(ptr!=vect.end())advance(ptr,1);
 }
 
+void ListaVariables::moveToPos(unsigned int pos){
+    ptr = vect.begin();
+    if(pos>len()) return;
+    for(unsigned int i=0;i<pos;i++){
+        next();
+    }
+}
+
 Variable ListaVariables::getCurr(){
     Variable varAux;
     if(len()==0) return varAux;
@@ -217,13 +224,7 @@ unsigned int ListaVariables::getPos(){return distance(vect.begin(),ptr);}
 
 unsigned int ListaVariables::len(){return vect.size();}
 
-void ListaVariables::goToPos(unsigned int pos){
-    ptr = vect.begin();
-    if(pos>len()) return;
-    for(unsigned int i=0;i<pos;i++){
-        next();
-    }
-}
+
 
 void ListaVariables::free(){
     for (unsigned int i = 0; i < vect.size(); i++){
@@ -257,7 +258,7 @@ ListaVehiculos ListaVariables::extraerSolucionActual(double velocidad, int tiemp
         vehiAux = recorridoDeVariable(getCurr(), velocidad, tiempoServicio, tiempoRecarga);
         sol.append(vehiAux);
         largo = vehiAux.recorrido.len();
-        goToPos(posAux+largo);
+        moveToPos(posAux+largo);
     }
     return sol;
 }
@@ -276,11 +277,13 @@ Vehiculo ListaVariables::recorridoDeVariable(Variable var, double velocidad, int
     Variable siguiente;
     Variable anterior;
     int pos = find(var);
-    if(pos!=-1)goToPos(abs(pos));
+    if(pos!=-1)moveToPos(abs(pos));
     else{ 
         return vehi;
     }
     if(len()==1){vehi.agregarParada(var.nodoAsignado);return vehi;}
+    if(pos!=0) anterior = getVariable(pos-1);
+    if(pos!=len()-1) siguiente = getVariable(pos+1);
     if(var.nodoAsignado.tipo=='d'){
         //Si estamos en un depot debemos determinar si hay que avanzar o retroceder
         //Comprobar si se está al final de la lista o detras de un depot(estamos al final de un recorrido)

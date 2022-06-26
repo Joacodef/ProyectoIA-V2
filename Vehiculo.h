@@ -72,7 +72,7 @@ int Vehiculo::tiempoTranscurrido(){
 
 double Vehiculo::distanciaTotalRecorrida(){
     double distancia = 0.0;
-    for(unsigned int i = 1; i < recorrido.len()-1;i++){
+    for(unsigned int i = 0; i < recorrido.len()-1;i++){
         distancia += calcularDistancia(recorrido.getNodo(i),recorrido.getNodo(i+1));
     }
     return distancia;
@@ -112,21 +112,20 @@ class ListaVehiculos{
         ListaVehiculos();
         void insertInFront(Vehiculo item);
         void append(Vehiculo vehi); 
-        void remove(unsigned int pos);
-        void removeNext();
+        void remove(int pos);
         void pop();
         void moveToStart();
         void moveToEnd();
         void prev();
         void next();
+        void moveToPos(unsigned int pos);
         void clear();
         Vehiculo getVehiculo(unsigned int pos);
+        Vehiculo getCurr();
         unsigned int getPos();
         unsigned int len();
-        void goToPos(unsigned int pos);
         void free();
         double calcularDistTotal();
-        Vehiculo getCurr();
         void mostrar();
 };
 
@@ -140,7 +139,7 @@ void ListaVehiculos::append(Vehiculo vehi){
     vect.push_back(vehi);
 }
 
-void ListaVehiculos::remove(unsigned int pos){
+void ListaVehiculos::remove(int pos){
     ptr = vect.begin();
     advance(ptr,pos);
     vect.erase(ptr++);
@@ -165,7 +164,21 @@ void ListaVehiculos::prev(){
 }
 
 void ListaVehiculos::next(){
-    if(ptr!=vect.end())advance(ptr,1);
+    if(ptr!=vect.end()-1)advance(ptr,1);
+}
+
+void ListaVehiculos::moveToPos(unsigned int pos){
+    ptr = vect.begin();
+    if(pos>len()) return;
+    for(unsigned int i=0;i<pos;i++){
+        next();
+    }
+}
+
+Vehiculo ListaVehiculos::getVehiculo(unsigned int pos){
+    Vehiculo vehiAux;
+    if(pos>len()-1 || len()<1) return vehiAux;
+    return vect[pos];
 }
 
 Vehiculo ListaVehiculos::getCurr(){
@@ -175,23 +188,10 @@ Vehiculo ListaVehiculos::getCurr(){
     return vehiAux;
 }
 
-Vehiculo ListaVehiculos::getVehiculo(unsigned int pos){
-    Vehiculo vehiAux;
-    if(pos<0 || pos>len()-1) return vehiAux;
-    return vect[pos];
-}
-
 unsigned int ListaVehiculos::getPos(){return distance(vect.begin(),ptr);}
 
 unsigned int ListaVehiculos::len(){return vect.size();}
 
-void ListaVehiculos::goToPos(unsigned int pos){
-    ptr = vect.begin();
-    if(pos>len()) return;
-    for(unsigned int i=0;i<pos;i++){
-        next();
-    }
-}
 
 void ListaVehiculos::free(){
     for (unsigned int i = 0; i < vect.size(); i++){
@@ -208,7 +208,6 @@ double ListaVehiculos::calcularDistTotal(){
     }
     return distancia;
 }
-
 
 
 void ListaVehiculos::mostrar(){
