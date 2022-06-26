@@ -80,7 +80,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
 
         Si el vehículo asociado a la variable anterior terminó su recorrido, se asigna un depot a la variable actual.
 
-        while(LOOP "CHICO" - variable no ha encontrado un nodo factible)
+        while(LOOP SECUNDARIO - variable no ha encontrado un nodo factible)
             Probar nuevos valores dentro de su dominio, comprobar condiciones.
 
             if(dominio esta vacío)
@@ -92,8 +92,12 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         variableSeAsigno = false;
         vehiAux = variables.recorridoDeVariable(variables.getCurr(),inst.velocidad, 
                                                     inst.tiempoServicio,inst.tiempoRecarga);
+
+        /*********PARA RUTEO**********/
+
         //variables.printNodos();
-        //******Verificar si se visitaron todos los clientes (nueva solución candidata)******//
+
+        /******Verificar si se visitaron todos los clientes (nueva solución candidata)******/
         if(variables.clientesVisitados().len()>=abs(inst.numClientes)){
 
             //Determinar si nueva solución es mejor
@@ -104,17 +108,16 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             solucionCandidata = variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga);
             distActual = solucionCandidata.calcularDistTotal();
 
-            //cout << "---------SOLUCION CANDIDATA-----------\n";
-            //solucionCandidata.mostrar();
-            //return solucionCandidata;//En caso de tener problemas con backtracking
+            cout << "\n\n---------SOLUCION CANDIDATA-----------\n";
+            solucionCandidata.mostrar();
 
             if(distActual < distMejorSolucion){
                 mejorSolucion = solucionCandidata;
                 distMejorSolucion = distActual;
             } 
             
-            //Ahora borramos el depot de la solución, restringimos y guardamos el dominio de la 
-            //última variable, y hacemos backtracking
+            //Ahora se borra el depot de la solución y hacemos backtracking.
+            //Para hacer BT se guarda el dominio de la ultima variable y le elimina de la lista.
             variables.pop();
             variables.moveToEnd();
             backtracking = true;
@@ -214,6 +217,13 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 //no cumple ninguna restriccion y debe hacerse backtracking
                 //
                 //2 Si la distancia de la solucion actual es mayor que la mejor solucion, se hace backtracking
+
+                //Chequeamos ademas si la penúltima variable en la lista tienen un depot, volvemos 2 veces hacia atras para evitar loops
+                if(variables.getVariable(variables.len()-1).nodoAsignado.tipo=='d' &&
+                variables.getVariable(variables.len()-2).nodoAsignado.tipo=='d'){
+                    variables.pop();
+                    variables.pop();
+                }
                 backtracking = true;
                 variableSeAsigno = false;
                 //se quita variable de la lista, pero se guarda su dominio para darselo a la variableActual en la sgte iteracion

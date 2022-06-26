@@ -40,7 +40,7 @@ int main() {
                 clientes.append(nodos.getNodo(i+inst.numEstaciones+1));                
             }
             time(&start);
-            ListaVehiculos vehiculos = generarSoluciones(500,inst,clientes,estaciones,depot);
+            ListaVehiculos vehiculos = generarSoluciones(10000,inst,clientes,estaciones,depot);
             cout<<"-----SOLUCION FINAL-----\n";
             vehiculos.mostrar();
             time(&end);
