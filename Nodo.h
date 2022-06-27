@@ -152,14 +152,14 @@ void ListaNodos::free(){
 }
 
 string ListaNodos::to_string(){
-    string output = "\n";
+    string output = "";
     moveToStart();
     if(len() != 0){
         for(unsigned int i=0;i<len()-1;i++){
-            output += std::to_string(getNodo(i).ID) + getNodo(i).tipo + "-";
+            output += getNodo(i).tipo + std::to_string(getNodo(i).ID) + "-";
             next();
         }
-        output += std::to_string(getNodo(len()-1).ID) + getNodo(len()-1).tipo;
+        output += getNodo(len()-1).tipo + std::to_string(getNodo(len()-1).ID);
         while(output.length()<90){
             output += " ";
         }

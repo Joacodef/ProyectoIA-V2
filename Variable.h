@@ -149,6 +149,7 @@ class ListaVariables{
         void clear();
         Variable getVariable(unsigned int pos);
         Variable getCurr();
+        Variable getLast();
         unsigned int getPos();
         unsigned int len();
         void free();
@@ -217,6 +218,14 @@ Variable ListaVariables::getCurr(){
     Variable varAux;
     return varAux;
 }
+
+Variable ListaVariables::getLast(){
+    if(len()!=0){
+        moveToEnd();
+    }
+    return getCurr();
+}
+
 
 unsigned int ListaVariables::getPos(){return distance(vect.begin(),ptr);}
 
