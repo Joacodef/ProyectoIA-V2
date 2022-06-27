@@ -45,7 +45,10 @@ class ListaNodos{
 
     public:
         ListaNodos();
-        void insertInFront(Nodo item);
+        void setVect(vector<Nodo> vect1);
+        void setPtr(vector<Nodo>::iterator ptr1);
+        vector<Nodo> getVect();
+        vector<Nodo>::iterator getPtr();
         void append(Nodo node);
         void remove(int pos);
         void pop();
@@ -57,8 +60,6 @@ class ListaNodos{
         void clear();
         Nodo getCurr();
         Nodo getNodo(unsigned int pos);
-        Nodo *getCurrReal();
-        Nodo *getNodoReal(unsigned int pos);
         int find(Nodo node);
         unsigned int getPos();
         unsigned int len();
@@ -71,6 +72,14 @@ ListaNodos::ListaNodos(){
     vect;
     ptr = vect.begin();
 }
+
+void ListaNodos::setVect(vector<Nodo> vect1){vect = vect1;}
+
+void ListaNodos::setPtr(vector<Nodo>::iterator ptr1){ptr = ptr1;}
+
+vector<Nodo> ListaNodos::getVect(){return vect;}
+
+vector<Nodo>::iterator ListaNodos::getPtr(){return ptr;}
 
 void ListaNodos::append(Nodo node){
     if(len()==1) ptr = vect.begin();
