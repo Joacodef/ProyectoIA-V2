@@ -101,7 +101,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             //solucionCandidata.mostrar();
 
             if(distActual < distMejorSolucion){
-                cout << "\n\nSolucion mejorada\n";
+                //cout << "\n\nSolucion mejorada\n";
                 mejorSolucion = solucionCandidata;
                 distMejorSolucion = distActual;
             }
@@ -247,14 +247,11 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             }
         }/***FIN DEL LOOP SECUNDARIO***/
         contadorIter ++;
-        //vehiAux.free();
     }/***FIN DEL LOOP PRINCIPAL***/
-    //variables.free();
+    if(mejorSolucion.len()==0){
+        variableActual.asignarNodo(depot);
+        variables.append(variableActual);
+        return variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga);
+    }
     return mejorSolucion;
 }
-
-
-/*
-
-*///Si todavía hay clientes, se busca busca solo dentro de los clientes el mas cercano
-                    

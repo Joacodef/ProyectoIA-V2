@@ -66,7 +66,6 @@ void generarOutput(ListaVehiculos vehiculos,string nombreArchivo, Instancia *ins
     float distanciasExcedidas[vehiculos.len()];
 
     vehiculos.moveToStart();
-    vehiculos.next();
 
     for(unsigned int i = 0; i < vehiculos.len(); i++){
         sumaDistancias += vehiculos.getVehiculo(i).distanciaTotalRecorrida();
@@ -82,7 +81,6 @@ void generarOutput(ListaVehiculos vehiculos,string nombreArchivo, Instancia *ins
 
     //Escribir en el archivo de output
     vehiculos.moveToStart();
-    vehiculos.next();
     output << std::fixed;
     output << std::setprecision(2);
     output << std::fixed << sumaDistancias << "    " << sumaClientes << "     " << vehiculos.len() << "     ";

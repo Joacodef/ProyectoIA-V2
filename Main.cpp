@@ -3,21 +3,23 @@
 #include <cstring>
 #include <bits/stdc++.h>
 #include "GeneradorSoluciones.h"
+#include <chrono>
 
 using namespace std;
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
 
 int Variable::id_actual = 1;
 int Vehiculo::id_actual = 1;
-int numInstancia = 1;
 
 int main() {
-    time_t start, end;
     string nombreArchivo = "";
     double tiempoEjecucion = 0.0;
     for(int i=1;i<=1;i++){
-        for(int j=numInstancia;j<=1;j++){
+        for(int j=1;j<=1;j++){
             nombreArchivo = "";
-            //tiempoEjecucion = 0.0;
             if(j<10){
                 nombreArchivo = "AB"+to_string(i)+"0"+to_string(j);
             }
@@ -40,16 +42,20 @@ int main() {
             for(int i=0;i<inst.numClientes;i++){
                 clientes.append(nodos.getNodo(i+inst.numEstaciones+1));                
             }
-            time(&start);
-            ListaVehiculos vehiculos = generarSoluciones(10000,inst,clientes,estaciones,depot);
-            cout<<"-----SOLUCION FINAL-----\n";
-            vehiculos.mostrar();
-            time(&end);
-            tiempoEjecucion = double(end-start)/ double(CLOCKS_PER_SEC);
+            //time(&start);
+            auto t1 = high_resolution_clock::now();
             
-            generarOutput(vehiculos,nombreArchivo,&inst,tiempoEjecucion);
+            ListaVehiculos vehiculos = generarSoluciones(1000,inst,clientes,estaciones,depot);
 
-            cout<<"Procesada instancia "<<nombreArchivo<<"\n";
+            auto t2 = high_resolution_clock::now();
+            auto ms_int = duration_cast<milliseconds>(t2 - t1);
+            duration<double, std::milli> ms_double = t2 - t1;
+
+            //cout<<"-----SOLUCION FINAL-----\n";
+            vehiculos.mostrar();
+
+            tiempoEjecucion = ms_double.count()/1000;
+            generarOutput(vehiculos,nombreArchivo,&inst,tiempoEjecucion);
         }
     }
     return 0;
