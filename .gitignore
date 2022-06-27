@@ -2,6 +2,7 @@
 main
 *.dat
 *.out
-test.cpp
 *.code-workspace
 .vscode
+output
+test
