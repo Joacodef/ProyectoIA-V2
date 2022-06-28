@@ -5,10 +5,10 @@
 
 using namespace std;
 
-// Funcion para generar recorridos para un vehiculo, de acuerdo con restricciones del GVRP
+vector<vector<double>> matrizDistancias(ListaNodos nodos);
 
 string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisitados, Nodo nodoPorAsignar, 
-                              Nodo depot, Nodo anterior, Instancia inst){
+                              Nodo depot, Nodo anterior, Instancia inst, vector<vector<double>> matrizDist){
     string porQueNoCumple = "siCumple";
     //cout << vehiculoDelNodo.distanciaDesdeRecarga<<"\n";
     //Verificar si se tiene combustible para llegar al nodo asignado:
@@ -18,7 +18,10 @@ string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisit
         return "combustible";
     }
     //Verificar si se tiene tiempo para volver al depósito:
-    double distanciaDeposito = calcularDistancia(nodoPorAsignar,depot);
+    int posMatriz = nodoPorAsignar.ID;
+    if(nodoPorAsignar.tipo=='f') posMatriz+=1;
+    else if(nodoPorAsignar.tipo=='c') posMatriz+=inst.numEstaciones;
+    double distanciaDeposito = matrizDist[posMatriz][0];
     double tiempoAlDepot = distanciaDeposito/inst.velocidad;
     if(vehiculoDelNodo.tiempoTranscurrido()+tiempoAlDepot > inst.maxTiempo){
         //Agregar cosas para descartar nodos que esten mas lejos del depot que el actual
@@ -39,7 +42,7 @@ string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisit
 
 
 ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos clientes, 
-                                  ListaNodos estaciones, Nodo depot){
+                                  ListaNodos estaciones, Nodo depot, ListaNodos nodos){
     int contadorIter = 0;   
     Nodo nodoAux;
     Variable variableActual;
@@ -51,6 +54,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
     double distMejorSolucion = INFINITY;
     double distActual = 0.0;
     string restriccion;
+    vector<vector<double>> matrizDist = matrizDistancias(nodos);
 
     Vehiculo vehiAux = Vehiculo(inst.velocidad, inst.tiempoServicio, inst.tiempoRecarga);
     variableActual.asignarNodo(depot);
@@ -59,24 +63,6 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
 
     /***************LOOP PRINCIPAL******************/
     while(contadorIter < maxIteraciones){
-        /****Explicación general****/
-        /*
-        Verificar si ya se llego a una solución (todos los clientes visitados), ver si es mejor que la actual
-        Hacer backtracking si se llegó a la solución
-
-        Verificar si se está entrando al loop "avanzando" o por backtracking. Si es lo primero,
-        se crea una variable "totalmente" nueva. Si es lo segundo, se mantiene el dominio anterior para
-        no perder los valores que se han probado.
-
-        Si el vehículo asociado a la variable anterior terminó su recorrido, se asigna un depot a la variable actual.
-
-        while(LOOP SECUNDARIO - variable no ha encontrado un nodo factible)
-            Probar nuevos valores dentro de su dominio, comprobar condiciones.
-
-            if(dominio esta vacío)
-                backtracking = true       
-        */
-
         //vehiAux guardará al principio de cada iteración el recorrido en el que se esté en esta asignación
         variableSeAsigno = false;
         vehiAux = variables.recorridoDeVariable(variables.getLast(),inst.velocidad, 
@@ -156,8 +142,8 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             while(!variableSeAsigno && !variableActual.dominioVacio()){
                 //Si quedan clientes se busca más cercano:
                 if(variableActual.dominioTieneCliente()){
-                    nodoAux = nodoMenorDistancia(variables.getLast().nodoAsignado, variableActual.dominioSoloClientes());
-                    restriccion = verificarRestricciones(vehiAux,clientesVisitados,nodoAux,depot,variables.getLast().nodoAsignado,inst);
+                    nodoAux = nodoMenorDistancia(variables.getLast().nodoAsignado, variableActual.dominioSoloClientes(),inst.numEstaciones,matrizDist);
+                    restriccion = verificarRestricciones(vehiAux,clientesVisitados,nodoAux,depot,variables.getLast().nodoAsignado,inst, matrizDist);
                     //Se verifica si el cliente a asignar cumple las restricciones
                     if(restriccion == "siCumple"){
                         //Si cumple las restricciones, se asigna el cliente a la variable
@@ -180,7 +166,11 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                         //la distanciaMax permitida por más de 30 millas (dando un rango razonable de error). Si es así, se debe 
                         //hacer BT y probar con nodos que estén más cerca del depot.
                         //AGREGAR ALGO PARA QUE SE LIMITEN EN LA VARIABLE ANTERIOR LOS NODOS QUE ESTÉN MÁS LEJOS DEL DEPOT
-                        double distAlDepot= calcularDistancia(variables.getLast().nodoAsignado, depot);
+                        int posMatriz = variables.getLast().nodoAsignado.ID;
+                        if(variables.getLast().nodoAsignado.tipo=='f') posMatriz+=1;
+                        else if(variables.getLast().nodoAsignado.tipo=='c') posMatriz+=inst.numEstaciones;
+                        double distAlDepot = matrizDist[posMatriz][0];
+                        
                         if(vehiAux.distanciaDesdeRecarga() + distAlDepot - inst.maxDistancia > 30){
                             variableActual.dominio = ListaNodos();
                             break;                        
@@ -201,8 +191,8 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                 }
                 else{ //Si no quedan clientes en el dominio de variableActual
                     
-                    nodoAux = nodoMenorDistancia(variables.getLast().nodoAsignado,variableActual.dominio);
-                    restriccion = verificarRestricciones(vehiAux,clientesVisitados,nodoAux,depot,variables.getLast().nodoAsignado,inst);
+                    nodoAux = nodoMenorDistancia(variables.getLast().nodoAsignado,variableActual.dominio,inst.numEstaciones, matrizDist);
+                    restriccion = verificarRestricciones(vehiAux,clientesVisitados,nodoAux,depot,variables.getLast().nodoAsignado,inst, matrizDist);
                     
                     if(restriccion == "siCumple"){
                         //Si la estación cumple todas las restricciones, se pasa por ella.
@@ -254,4 +244,22 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         return variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga);
     }
     return mejorSolucion;
+}
+
+
+vector<vector<double>> matrizDistancias(ListaNodos nodos){
+    vector<vector<double>> matriz;
+    vector<double> vect;
+    for(int i=0;i<nodos.len();i++){
+        matriz.push_back(vect);
+        for(int j=0;j<nodos.len();j++){
+            //if(i<j){
+                matriz[i].push_back(calcularDistancia(nodos.getNodo(i),nodos.getNodo(j)));
+            /*}
+            else{
+                matriz[i].push_back(0);
+            }*/
+        }
+    }
+    return matriz;
 }
