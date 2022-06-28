@@ -240,23 +240,24 @@ double calcularDistancia(Nodo nodo1, Nodo nodo2){
 
 Nodo nodoMenorDistancia(Nodo central, ListaNodos conjunto,int numEstaciones, vector<vector<double>> matrizDist){
     double menor = 999999999.9;
-    Nodo menorNodo;
+    Nodo menorNodo, nodoAux;
     double distancia = 0.0;
     for(unsigned int i=0; i<conjunto.len();i++){
-        if(central.ID == conjunto.getNodo(i).ID && central.tipo == conjunto.getNodo(i).tipo) continue;
-
+        nodoAux = conjunto.getNodo(i);
+        if(central.ID == nodoAux.ID && central.tipo == nodoAux.tipo) continue;
+        
         int posMatriz1 = central.ID;
         if(central.tipo=='f') posMatriz1+=1;
         else if(central.tipo=='c') posMatriz1+=numEstaciones;
 
-        int posMatriz2 = conjunto.getNodo(i).ID;
-        if(conjunto.getNodo(i).tipo=='f') posMatriz2+=1;
-        else if(conjunto.getNodo(i).tipo=='c') posMatriz2+=numEstaciones;
+        int posMatriz2 = nodoAux.ID;
+        if(nodoAux.tipo=='f') posMatriz2+=1;
+        else if(nodoAux.tipo=='c') posMatriz2+=numEstaciones;
 
         distancia = matrizDist[posMatriz1][posMatriz2];
         if(distancia<menor){
             menor = distancia;
-            menorNodo = conjunto.getNodo(i);
+            menorNodo = nodoAux;
         }      
     }
     return menorNodo;
