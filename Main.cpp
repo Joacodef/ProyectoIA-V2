@@ -17,8 +17,8 @@ int Vehiculo::id_actual = 1;
 int main() {
     string nombreArchivo = "";
     double tiempoEjecucion = 0.0;
-    for(int i=1;i<=2;i++){
-        for(int j=1;j<=20;j++){
+    for(int i=1;i<=1;i++){
+        for(int j=2;j<=2;j++){
             nombreArchivo = "";
             if(j<10){
                 nombreArchivo = "AB"+to_string(i)+"0"+to_string(j);
@@ -44,7 +44,7 @@ int main() {
             }
             auto t1 = high_resolution_clock::now();
             
-            ListaVehiculos vehiculos = generarSoluciones(600,inst,clientes,estaciones,depot,nodos);
+            ListaVehiculos vehiculos = generarSoluciones(20000,inst,clientes,estaciones,depot,nodos);
 
             auto t2 = high_resolution_clock::now();
             auto ms_int = duration_cast<milliseconds>(t2 - t1);

@@ -6,13 +6,14 @@
 using namespace std;
 
 string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisitados, Nodo nodoPorAsignar, 
-                              Nodo depot, Nodo anterior, Instancia inst);
+                              Nodo depot, Nodo anterior, Instancia inst,vector<vector<double>> matrizDist);
 
 void verificarSolEncontrada(Nodo depot, Instancia inst, ListaVariables *variables, double *distMejorSolucion,ListaVehiculos *mejorSolucion, 
                             Vehiculo vehiAux, ListaNodos *clientesRestantes, ListaNodos *clientesVisitados, ListaNodos *dominio);
 
 void buscarAsignacionVariable(bool *variableSeAsigno, Variable *variableActual,ListaVariables *variables, Instancia inst,
-                            ListaNodos *clientesVisitados, ListaNodos *clientesRestantes, Vehiculo vehiAux, Nodo depot);
+                            ListaNodos *clientesVisitados, ListaNodos *clientesRestantes, Vehiculo vehiAux, Nodo depot, 
+                            vector<vector<double>> matrizDist);
 
 vector<vector<double>> matrizDistancias(ListaNodos nodos);
 
@@ -79,7 +80,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         else{
             /**LOOP SECUNDARIO**/
             buscarAsignacionVariable(&variableSeAsigno,&variableActual,&variables,inst,&clientesVisitados,&clientesRestantes,
-                                    vehiAux,depot);
+                                    vehiAux,depot, matrizDist);
 
             /****CONDICIONES DE BACKTRACKING****/
             distActual = variables.extraerSolucionActual(inst.velocidad,inst.tiempoServicio,inst.tiempoRecarga).calcularDistTotal();
@@ -120,7 +121,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
 
 
 string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisitados, Nodo nodoPorAsignar, 
-                            Nodo depot, Nodo anterior, Instancia inst){
+                            Nodo depot, Nodo anterior, Instancia inst, vector<vector<double>> matrizDist){
     string porQueNoCumple = "siCumple";
     //Verificar si se tiene combustible para llegar al nodo asignado
     double distRecarga = vehiculoDelNodo.distanciaDesdeRecarga();
@@ -129,7 +130,10 @@ string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisit
         return "combustible";
     }
     //Verificar si se tiene tiempo para volver al depósito:
-    double distanciaDeposito = calcularDistancia(nodoPorAsignar,depot);
+    int posMatriz = nodoPorAsignar.ID;
+    if(nodoPorAsignar.tipo=='f') posMatriz+=1;
+    else if(nodoPorAsignar.tipo=='c') posMatriz+=inst.numEstaciones;
+    double distanciaDeposito = matrizDist[posMatriz][0];
     double tiempoAlDepot = distanciaDeposito/inst.velocidad;
     if(vehiculoDelNodo.tiempoTranscurrido()+tiempoAlDepot > inst.maxTiempo){
         //Agregar cosas para descartar nodos que esten mas lejos del depot que el actual
@@ -191,7 +195,8 @@ void verificarSolEncontrada(Nodo depot, Instancia inst, ListaVariables *variable
 
 
 void buscarAsignacionVariable(bool *variableSeAsigno, Variable *variableActual,ListaVariables *variables, Instancia inst,
-                            ListaNodos *clientesVisitados, ListaNodos *clientesRestantes, Vehiculo vehiAux, Nodo depot){
+                            ListaNodos *clientesVisitados, ListaNodos *clientesRestantes, Vehiculo vehiAux, Nodo depot, 
+                            vector<vector<double>> matrizDist){
     //Verificar que no se haya asignado un nodo a la variable, y que su dominio no esté vacío
     Nodo nodoAux;
     string restriccion;
@@ -199,7 +204,7 @@ void buscarAsignacionVariable(bool *variableSeAsigno, Variable *variableActual,L
         //Si quedan clientes se busca más cercano:
         if(variableActual->dominioTieneCliente()){
             nodoAux = nodoMenorDistancia(variables->getLast().nodoAsignado, variableActual->dominioSoloClientes());
-            restriccion = verificarRestricciones(vehiAux,*clientesVisitados,nodoAux,depot,variables->getLast().nodoAsignado,inst);
+            restriccion = verificarRestricciones(vehiAux,*clientesVisitados,nodoAux,depot,variables->getLast().nodoAsignado,inst,matrizDist);
             //Se verifica si el cliente a asignar cumple las restricciones
             if(restriccion == "siCumple"){
                 //Si cumple las restricciones, se asigna el cliente a la variable
@@ -244,7 +249,7 @@ void buscarAsignacionVariable(bool *variableSeAsigno, Variable *variableActual,L
         else{ //Si no quedan clientes en el dominio de variableActual
             
             nodoAux = nodoMenorDistancia(variables->getLast().nodoAsignado,variableActual->dominio);
-            restriccion = verificarRestricciones(vehiAux,*clientesVisitados,nodoAux,depot,variables->getLast().nodoAsignado,inst);
+            restriccion = verificarRestricciones(vehiAux,*clientesVisitados,nodoAux,depot,variables->getLast().nodoAsignado,inst,matrizDist);
             
             if(restriccion == "siCumple"){
                 //Si la estación cumple todas las restricciones, se pasa por ella.
@@ -268,12 +273,12 @@ vector<vector<double>> matrizDistancias(ListaNodos nodos){
     for(int i=0;i<nodos.len();i++){
         matriz.push_back(vect);
         for(int j=0;j<nodos.len();j++){
-            if(i<j){
+            //if(i<j){
                 matriz[i].push_back(calcularDistancia(nodos.getNodo(i),nodos.getNodo(j)));
-            }
+            /*}
             else{
                 matriz[i].push_back(0);
-            }
+            }*/
         }
     }
     return matriz;

@@ -24,51 +24,6 @@ ListaVariables casoPrueba(ListaNodos nodes, Nodo depot, ListaNodos clientes, Lis
 
 
 
-
-void treeInsert(vector<tuple<double,string>> *nodos, tuple<double,string> nodoInsertar, int a, int b){
-    if(a==b){
-        auto itPos = nodos->begin()+4;
-        nodos->insert(itPos,nodoInsertar);
-    }
-    else{
-        int i = (int)((a+b)/2);
-        tuple<double,string> nodoMedio = (*nodos)[i];
-        if(get<0>(nodoInsertar) < get<0>(nodoMedio)){
-            treeInsert(nodos,nodoInsertar,a,i);
-        }
-        else if(get<0>(nodoInsertar) > get<0>(nodoMedio)){
-            treeInsert(nodos,nodoInsertar,i,b);
-        }
-        else{
-            treeInsert(nodos,nodoInsertar,i,i);
-        }
-    }
-}
-
-
-void calcDistancias(map<string,vector<tuple<double,string>>> *dictClientesDist, //map<Nodo,vector<Nodo>> *dictEstacionesDist(ListaNodos nodos),
-                    Nodo depot, ListaNodos clientes, ListaNodos estaciones){
-    //Diccionario asocia a cada nodo un vector de pares (distancia, Nodo)
-    map<string,vector<tuple<double,string>>> dictClientesDistTemp;
-    vector<tuple<double,string>>::iterator ptr;
-    string stringAux1,stringAux2;
-    clientes.moveToStart();
-    for(int i=0;i<clientes.len();i++){
-        stringAux1 = to_string(clientes.getCurr().ID) + clientes.getCurr().tipo;
-        ptr = dictClientesDistTemp[stringAux1].begin();
-        for(int j=0;j<clientes.len();j++){
-            //En cada iteracion sobre un nodo se debe insertar el nuevo par (distancia, nodo2) de manera queden ordenados por distancia ascendente
-            stringAux2 = to_string(clientes.getNodo(j).ID) + clientes.getNodo(j).tipo;
-            tuple<double,string> tuplaAux = make_tuple(calcularDistancia(clientes.getCurr(),clientes.getNodo(j)),stringAux2);
-            
-            if(dictClientesDistTemp[stringAux2].size()>0) treeInsert(&dictClientesDistTemp[stringAux2],tuplaAux,0,dictClientesDistTemp.size());
-            else{dictClientesDistTemp[stringAux2].push_back(tuplaAux);}
-        }
-        clientes.next();
-    }
-    *dictClientesDist = dictClientesDistTemp;
-}
-
 int main(){
     ListaVariables vars;
     Instancia inst = Instancia();
@@ -84,20 +39,25 @@ int main(){
     for(int i=0;i<inst.numClientes;i++){
         clientes.append(nodos.getNodo(i+inst.numEstaciones+1));                
     }
+    vector<vector<double>> matriz = matrizDistancias(nodos);
     auto t1 = high_resolution_clock::now();
 
     /*****PROBAR ALGO AQUÍ*****/
     
-    map<string,vector<tuple<double,string>>> dictClientesDist;
-    calcDistancias(&dictClientesDist,depot,clientes,estaciones);
-    for(int i = 0; i<dictClientesDist["10c"].size();i++) cout << get<0>(dictClientesDist["10c"][i]) << "  ";
+    
+    Nodo nodoAux = clientes.getNodo(25);
+    
+    for(int i = 0; i<100000;i++){
+        //calcularDistancia(nodoAux,depot);
+        
+    }
 
     /**************************/
 
     auto t2 = high_resolution_clock::now();
     auto ms_int = duration_cast<milliseconds>(t2 - t1);
     duration<double, std::milli> ms_double = t2 - t1;
-    double tiempoEjecucion = ms_double.count()/1000;
+    double tiempoEjecucion = ms_double.count();
     cout<<"\n Tiempo de ejecucion: "<<tiempoEjecucion<<"\n";
     
 
@@ -168,6 +128,60 @@ ListaVariables casoPrueba(ListaNodos nodes, Nodo depot, ListaNodos clientes, Lis
 
     return vars;
 }
+
+
+
+/*Calculo de distancias entre todos los nodos + ordenamiento de menor a mayor por nodo
+
+void treeInsert(vector<tuple<double,string>> *nodos, tuple<double,string> nodoInsertar, int a, int b){
+    if(a==b){
+        auto itPos = nodos->begin()+4;
+        nodos->insert(itPos,nodoInsertar);
+    }
+    else{
+        int i = (int)((a+b)/2);
+        tuple<double,string> nodoMedio = (*nodos)[i];
+        if(get<0>(nodoInsertar) < get<0>(nodoMedio)){
+            treeInsert(nodos,nodoInsertar,a,i);
+        }
+        else if(get<0>(nodoInsertar) > get<0>(nodoMedio)){
+            treeInsert(nodos,nodoInsertar,i,b);
+        }
+        else{
+            treeInsert(nodos,nodoInsertar,i,i);
+        }
+    }
+}
+
+
+void calcDistancias(map<string,vector<tuple<double,string>>> *dictClientesDist, //map<Nodo,vector<Nodo>> *dictEstacionesDist(ListaNodos nodos),
+                    Nodo depot, ListaNodos clientes, ListaNodos estaciones){
+    //Diccionario asocia a cada nodo un vector de pares (distancia, Nodo)
+    map<string,vector<tuple<double,string>>> dictClientesDistTemp;
+    vector<tuple<double,string>>::iterator ptr;
+    string stringAux1,stringAux2;
+    clientes.moveToStart();
+    for(int i=0;i<clientes.len();i++){
+        stringAux1 = to_string(clientes.getCurr().ID) + clientes.getCurr().tipo;
+        ptr = dictClientesDistTemp[stringAux1].begin();
+        for(int j=0;j<clientes.len();j++){
+            //En cada iteracion sobre un nodo se debe insertar el nuevo par (distancia, nodo2) de manera queden ordenados por distancia ascendente
+            stringAux2 = to_string(clientes.getNodo(j).ID) + clientes.getNodo(j).tipo;
+            tuple<double,string> tuplaAux = make_tuple(calcularDistancia(clientes.getCurr(),clientes.getNodo(j)),stringAux2);
+            
+            if(dictClientesDistTemp[stringAux2].size()>0) treeInsert(&dictClientesDistTemp[stringAux2],tuplaAux,0,dictClientesDistTemp.size());
+            else{dictClientesDistTemp[stringAux2].push_back(tuplaAux);}
+        }
+        clientes.next();
+    }
+    *dictClientesDist = dictClientesDistTemp;
+}
+
+//Testeo para ver si funciona
+map<string,vector<tuple<double,string>>> dictClientesDist;
+    calcDistancias(&dictClientesDist,depot,clientes,estaciones);
+    for(int i = 0; i<dictClientesDist["10c"].size();i++) cout << get<0>(dictClientesDist["10c"][i]) << "  ";
+*/
 
 
 
