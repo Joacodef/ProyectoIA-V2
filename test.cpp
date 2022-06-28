@@ -5,18 +5,110 @@
 #include <bits/stdc++.h>
 #include <math.h>
 #include <string.h>
+#include <chrono>
+#include <map>
 #include "GeneradorSoluciones.h"
 #define MY_PI 3.14159265358979323846
 
 using namespace std;
+
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
 
 int Variable::id_actual = 1;
 int Vehiculo::id_actual = 1;
 
 ListaVariables casoPrueba(ListaNodos nodes, Nodo depot, ListaNodos clientes, ListaNodos estaciones);
 
-int main() {
+
+
+
+void treeInsert(vector<tuple<double,string>> *nodos, tuple<double,string> nodoInsertar, int a, int b){
+    if(a==b){
+        auto itPos = nodos->begin()+4;
+        nodos->insert(itPos,nodoInsertar);
+    }
+    else{
+        int i = (int)((a+b)/2);
+        tuple<double,string> nodoMedio = (*nodos)[i];
+        if(get<0>(nodoInsertar) < get<0>(nodoMedio)){
+            treeInsert(nodos,nodoInsertar,a,i);
+        }
+        else if(get<0>(nodoInsertar) > get<0>(nodoMedio)){
+            treeInsert(nodos,nodoInsertar,i,b);
+        }
+        else{
+            treeInsert(nodos,nodoInsertar,i,i);
+        }
+    }
+}
+
+
+void calcDistancias(map<string,vector<tuple<double,string>>> *dictClientesDist, //map<Nodo,vector<Nodo>> *dictEstacionesDist(ListaNodos nodos),
+                    Nodo depot, ListaNodos clientes, ListaNodos estaciones){
+    //Diccionario asocia a cada nodo un vector de pares (distancia, Nodo)
+    map<string,vector<tuple<double,string>>> dictClientesDistTemp;
+    vector<tuple<double,string>>::iterator ptr;
+    string stringAux1,stringAux2;
+    clientes.moveToStart();
+    for(int i=0;i<clientes.len();i++){
+        stringAux1 = to_string(clientes.getCurr().ID) + clientes.getCurr().tipo;
+        ptr = dictClientesDistTemp[stringAux1].begin();
+        for(int j=0;j<clientes.len();j++){
+            //En cada iteracion sobre un nodo se debe insertar el nuevo par (distancia, nodo2) de manera queden ordenados por distancia ascendente
+            stringAux2 = to_string(clientes.getNodo(j).ID) + clientes.getNodo(j).tipo;
+            tuple<double,string> tuplaAux = make_tuple(calcularDistancia(clientes.getCurr(),clientes.getNodo(j)),stringAux2);
+            
+            if(dictClientesDistTemp[stringAux2].size()>0) treeInsert(&dictClientesDistTemp[stringAux2],tuplaAux,0,dictClientesDistTemp.size());
+            else{dictClientesDistTemp[stringAux2].push_back(tuplaAux);}
+        }
+        clientes.next();
+    }
+    *dictClientesDist = dictClientesDistTemp;
+}
+
+int main(){
+    ListaVariables vars;
+    Instancia inst = Instancia();
+    Nodo depot = Nodo();
+    ListaNodos nodos = ListaNodos();
+    ListaNodos estaciones = ListaNodos();
+    ListaNodos clientes = ListaNodos();
+    inst = extraerArchivo(&nodos,"AB101");
+    depot = nodos.getNodo(1);
+    for(int i=0;i<inst.numEstaciones;i++){
+        estaciones.append(nodos.getNodo(i+1));                
+    }
+    for(int i=0;i<inst.numClientes;i++){
+        clientes.append(nodos.getNodo(i+inst.numEstaciones+1));                
+    }
+    auto t1 = high_resolution_clock::now();
+
+    /*****PROBAR ALGO AQUÍ*****/
+    
+    map<string,vector<tuple<double,string>>> dictClientesDist;
+    calcDistancias(&dictClientesDist,depot,clientes,estaciones);
+    for(int i = 0; i<dictClientesDist["10c"].size();i++) cout << get<0>(dictClientesDist["10c"][i]) << "  ";
+
+    /**************************/
+
+    auto t2 = high_resolution_clock::now();
+    auto ms_int = duration_cast<milliseconds>(t2 - t1);
+    duration<double, std::milli> ms_double = t2 - t1;
+    double tiempoEjecucion = ms_double.count()/1000;
+    cout<<"\n Tiempo de ejecucion: "<<tiempoEjecucion<<"\n";
+    
+
+    return 0;
+}
+
+
+
+int probar() {
     /********Extraer datos de archivo*******/
+    
     ListaVariables vars;
     Instancia inst = Instancia();
     Nodo depot = Nodo();
@@ -45,7 +137,7 @@ int main() {
 
     //cout<< <<"\n";
     //vehi.recorrido.to_string()
-
+    
     return 0;
 }
 

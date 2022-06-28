@@ -14,11 +14,13 @@ void verificarSolEncontrada(Nodo depot, Instancia inst, ListaVariables *variable
 void buscarAsignacionVariable(bool *variableSeAsigno, Variable *variableActual,ListaVariables *variables, Instancia inst,
                             ListaNodos *clientesVisitados, ListaNodos *clientesRestantes, Vehiculo vehiAux, Nodo depot);
 
+vector<vector<double>> matrizDistancias(ListaNodos nodos);
+
 
 // Funcion para generar recorridos para un vehiculo, de acuerdo con restricciones del GVRP
 
 ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos clientes, 
-                                ListaNodos estaciones, Nodo depot){
+                                ListaNodos estaciones, Nodo depot, ListaNodos nodos){
     int contadorIter = 0;   
     Variable variableActual;
     ListaNodos dominioAcotado,clientesRestantes,clientesVisitados;
@@ -28,6 +30,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
     bool variableSeAsigno = false;
     double distMejorSolucion = INFINITY;
     double distActual = 0.0;
+    vector<vector<double>> matrizDist = matrizDistancias(nodos);
 
     Vehiculo vehiAux = Vehiculo(inst.velocidad, inst.tiempoServicio, inst.tiempoRecarga);
     variableActual.asignarNodo(depot);
@@ -40,7 +43,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         //vehiAux guardará al principio de cada iteración el recorrido en el que se esté en esta asignación
         variableSeAsigno = false;
         vehiAux = variables.recorridoDeVariable(variables.getLast(),inst.velocidad, 
-                                                    inst.tiempoServicio,inst.tiempoRecarga);
+                                                inst.tiempoServicio,inst.tiempoRecarga);
 
         /*PARA RUTEO*/
         //variables.printNodos();
@@ -48,7 +51,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
         //Si se visitaron todos los clientes:
         if(clientesVisitados.len()>=abs(inst.numClientes)){
             verificarSolEncontrada(depot,inst,&variables,&distMejorSolucion,&mejorSolucion,vehiAux,
-                                    &clientesRestantes,&clientesVisitados,&dominioAcotado);
+                                &clientesRestantes,&clientesVisitados,&dominioAcotado);
             contadorIter++;
             backtracking = true;
             variableSeAsigno = false;  
@@ -258,3 +261,20 @@ void buscarAsignacionVariable(bool *variableSeAsigno, Variable *variableActual,L
     }
 }
 
+
+vector<vector<double>> matrizDistancias(ListaNodos nodos){
+    vector<vector<double>> matriz;
+    vector<double> vect;
+    for(int i=0;i<nodos.len();i++){
+        matriz.push_back(vect);
+        for(int j=0;j<nodos.len();j++){
+            if(i<j){
+                matriz[i].push_back(calcularDistancia(nodos.getNodo(i),nodos.getNodo(j)));
+            }
+            else{
+                matriz[i].push_back(0);
+            }
+        }
+    }
+    return matriz;
+}

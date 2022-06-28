@@ -42,10 +42,9 @@ int main() {
             for(int i=0;i<inst.numClientes;i++){
                 clientes.append(nodos.getNodo(i+inst.numEstaciones+1));                
             }
-            //time(&start);
             auto t1 = high_resolution_clock::now();
             
-            ListaVehiculos vehiculos = generarSoluciones(600,inst,clientes,estaciones,depot);
+            ListaVehiculos vehiculos = generarSoluciones(600,inst,clientes,estaciones,depot,nodos);
 
             auto t2 = high_resolution_clock::now();
             auto ms_int = duration_cast<milliseconds>(t2 - t1);
