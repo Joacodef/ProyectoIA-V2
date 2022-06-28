@@ -129,12 +129,14 @@ string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisit
         //Agregar cosas para quitar del dominio a otros clientes
         return "combustible";
     }
+
     //Verificar si se tiene tiempo para volver al depósito:
     int posMatriz = nodoPorAsignar.ID;
     if(nodoPorAsignar.tipo=='f') posMatriz+=1;
     else if(nodoPorAsignar.tipo=='c') posMatriz+=inst.numEstaciones;
     double distanciaDeposito = matrizDist[posMatriz][0];
     double tiempoAlDepot = distanciaDeposito/inst.velocidad;
+
     if(vehiculoDelNodo.tiempoTranscurrido()+tiempoAlDepot > inst.maxTiempo){
         //Agregar cosas para descartar nodos que esten mas lejos del depot que el actual
         return "tiempo";
@@ -203,7 +205,7 @@ void buscarAsignacionVariable(bool *variableSeAsigno, Variable *variableActual,L
     while(!(*variableSeAsigno) && !variableActual->dominioVacio()){
         //Si quedan clientes se busca más cercano:
         if(variableActual->dominioTieneCliente()){
-            nodoAux = nodoMenorDistancia(variables->getLast().nodoAsignado, variableActual->dominioSoloClientes());
+            nodoAux = nodoMenorDistancia(variables->getLast().nodoAsignado, variableActual->dominioSoloClientes(),inst.numEstaciones,matrizDist);
             restriccion = verificarRestricciones(vehiAux,*clientesVisitados,nodoAux,depot,variables->getLast().nodoAsignado,inst,matrizDist);
             //Se verifica si el cliente a asignar cumple las restricciones
             if(restriccion == "siCumple"){
@@ -248,7 +250,7 @@ void buscarAsignacionVariable(bool *variableSeAsigno, Variable *variableActual,L
         }
         else{ //Si no quedan clientes en el dominio de variableActual
             
-            nodoAux = nodoMenorDistancia(variables->getLast().nodoAsignado,variableActual->dominio);
+            nodoAux = nodoMenorDistancia(variables->getLast().nodoAsignado,variableActual->dominio,inst.numEstaciones,matrizDist);
             restriccion = verificarRestricciones(vehiAux,*clientesVisitados,nodoAux,depot,variables->getLast().nodoAsignado,inst,matrizDist);
             
             if(restriccion == "siCumple"){
