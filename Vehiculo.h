@@ -28,6 +28,7 @@ class Vehiculo{
         double distanciaTotalRecorrida();
         double distanciaDesdeRecarga();
         void free();
+        bool checkEstaciones(Nodo paradaNueva);
 };
 
 Vehiculo::Vehiculo(){
@@ -91,6 +92,19 @@ double Vehiculo::distanciaDesdeRecarga(){
         distancia += calcularDistancia(recorrido.getNodo(i),recorrido.getNodo(i+1));
     }
     return distancia;
+}
+
+bool Vehiculo::checkEstaciones(Nodo paradaNueva){
+    //Verifica si, con la parada nueva, se estarían visitando 3 nodos seguidos, en cuyo caso aceptada es false.
+    bool aceptada = true;
+    if(recorrido.len() > 3){
+        recorrido.moveToEnd();
+        if(recorrido.getCurr().tipo == 'f'){
+            recorrido.prev();
+            if(recorrido.getCurr().tipo == 'f' && paradaNueva.tipo == 'f') aceptada = false; 
+        }
+    }
+    return aceptada;
 }
 
 void Vehiculo::free(){

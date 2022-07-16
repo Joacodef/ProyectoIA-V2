@@ -12,8 +12,9 @@ string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisit
     string porQueNoCumple = "siCumple";
     //cout << vehiculoDelNodo.distanciaDesdeRecarga<<"\n";
     //Verificar si se tiene combustible para llegar al nodo asignado:
+    //(Además, checkEstaciones impide que se visiten 3 estaciones seguidas)
     double distRecarga = vehiculoDelNodo.distanciaDesdeRecarga();
-    if(distRecarga>inst.maxDistancia){
+    if(distRecarga>inst.maxDistancia || !vehiculoDelNodo.checkEstaciones(nodoPorAsignar)){
         return "combustible";
     }
     //Verificar si se tiene tiempo para volver al depósito:
