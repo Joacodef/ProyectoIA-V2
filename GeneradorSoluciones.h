@@ -14,14 +14,12 @@ string verificarRestricciones(Vehiculo vehiculoDelNodo, ListaNodos clientesVisit
     //Verificar si se tiene combustible para llegar al nodo asignado:
     double distRecarga = vehiculoDelNodo.distanciaDesdeRecarga();
     if(distRecarga>inst.maxDistancia){
-        //Agregar cosas para quitar del dominio a otros clientes
         return "combustible";
     }
     //Verificar si se tiene tiempo para volver al depósito:
     double distanciaDeposito = calcularDistancia(nodoPorAsignar,depot);
     double tiempoAlDepot = distanciaDeposito/inst.velocidad;
     if(vehiculoDelNodo.tiempoTranscurrido()+tiempoAlDepot > inst.maxTiempo){
-        //Agregar cosas para descartar nodos que esten mas lejos del depot que el actual
         return "tiempo";
     }
     //Verificar si el cliente ya fue asignado
@@ -59,30 +57,12 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
 
     /***************LOOP PRINCIPAL******************/
     while(contadorIter < maxIteraciones){
-        /****Explicación general****/
-        /*
-        Verificar si ya se llego a una solución (todos los clientes visitados), ver si es mejor que la actual
-        Hacer backtracking si se llegó a la solución
-
-        Verificar si se está entrando al loop "avanzando" o por backtracking. Si es lo primero,
-        se crea una variable "totalmente" nueva. Si es lo segundo, se mantiene el dominio anterior para
-        no perder los valores que se han probado.
-
-        Si el vehículo asociado a la variable anterior terminó su recorrido, se asigna un depot a la variable actual.
-
-        while(LOOP SECUNDARIO - variable no ha encontrado un nodo factible)
-            Probar nuevos valores dentro de su dominio, comprobar condiciones.
-
-            if(dominio esta vacío)
-                backtracking = true       
-        */
-
         //vehiAux guardará al principio de cada iteración el recorrido en el que se esté en esta asignación
         variableSeAsigno = false;
         vehiAux = variables.recorridoDeVariable(variables.getLast(),inst.velocidad, 
                                                     inst.tiempoServicio,inst.tiempoRecarga);
 
-        /*********PARA RUTEO**********/
+        /*PARA RUTEO*/
 
         //variables.printNodos();
 
@@ -127,7 +107,6 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             continue;
         }
         
-
         //Se comprueba si estamos entrando al loop por backtracking o no
         if(!backtracking){
             //Si no es backtracking, se declara la nueva variable que se asignará en esta iteración
@@ -147,7 +126,6 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
             variables.append(variableActual);
         }
         else{/*******************LOOP SECUNDARIO*******************/
-
 
             //Se buscan asignaciones factibles para la nueva variable en un loop. Si el dominio esta vacío o se encontró
             //la asignación, se termina el loop, habiendo asignado la variable.
@@ -181,12 +159,12 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
                         //hacer BT y probar con nodos que estén más cerca del depot.
                         //AGREGAR ALGO PARA QUE SE LIMITEN EN LA VARIABLE ANTERIOR LOS NODOS QUE ESTÉN MÁS LEJOS DEL DEPOT
                         double distAlDepot= calcularDistancia(variables.getLast().nodoAsignado, depot);
-                        if(vehiAux.distanciaDesdeRecarga() + distAlDepot - inst.maxDistancia > 30){
+                        if(vehiAux.distanciaDesdeRecarga() + distAlDepot - inst.maxDistancia > 70){
                             variableActual.dominio = ListaNodos();
                             break;                        
                         }
                         //Chequear si alcanza el tiempo para volver al depot directo, de lo contrario hace BT
-                        if(distAlDepot/inst.velocidad + vehiAux.tiempoTranscurrido() > inst.maxTiempo){
+                        if(distAlDepot/inst.velocidad + vehiAux.tiempoTranscurrido() - inst.maxTiempo > 20){
                             variableActual.dominio = ListaNodos();
                             break;  
                         }
