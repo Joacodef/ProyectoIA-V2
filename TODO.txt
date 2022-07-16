@@ -1,3 +1,0 @@
-La instancia 102 (y varias otras) tienen el problema de que se quedan
-atascadas en un solo vehiculo, aun 
-8.243

@@ -26,6 +26,7 @@ int main() {
             else{
                 nombreArchivo = "AB"+to_string(i)+to_string(j);
             }
+            
             Instancia inst = Instancia();
             Nodo depot = Nodo();
             ListaNodos nodos = ListaNodos();
@@ -44,8 +45,8 @@ int main() {
             }
             //time(&start);
             auto t1 = high_resolution_clock::now();
-            
-            ListaVehiculos vehiculos = generarSoluciones(20000,inst,clientes,estaciones,depot,nodos);
+        
+            ListaVehiculos vehiculos = generarSoluciones(5000,inst,clientes,estaciones,depot);
 
             auto t2 = high_resolution_clock::now();
             auto ms_int = duration_cast<milliseconds>(t2 - t1);

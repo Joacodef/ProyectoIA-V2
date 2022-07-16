@@ -5,3 +5,6 @@ main
 test.cpp
 *.code-workspace
 .vscode
+ToDo IA.txt
+output
+test
