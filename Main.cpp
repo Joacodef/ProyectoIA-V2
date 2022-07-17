@@ -14,51 +14,43 @@ using std::chrono::milliseconds;
 int Variable::id_actual = 1;
 int Vehiculo::id_actual = 1;
 
-int main() {
-    string nombreArchivo = "";
+int main(int argc, char* argv[]) {
+    string nombreArchivo(argv[1]);
     double tiempoEjecucion = 0.0;
-    for(int i=1;i<=2;i++){
-        for(int j=1;j<=20;j++){
-            nombreArchivo = "";
-            if(j<10){
-                nombreArchivo = "AB"+to_string(i)+"0"+to_string(j);
-            }
-            else{
-                nombreArchivo = "AB"+to_string(i)+to_string(j);
-            }
-            
-            Instancia inst = Instancia();
-            Nodo depot = Nodo();
-            ListaNodos nodos = ListaNodos();
-            ListaNodos estaciones = ListaNodos();
-            ListaNodos clientes = ListaNodos();
-        
-            inst = extraerArchivo(&nodos,nombreArchivo);
+    
+    cout << nombreArchivo <<"\n";
+    Instancia inst = Instancia();
+    Nodo depot = Nodo();
+    ListaNodos nodos = ListaNodos();
+    ListaNodos estaciones = ListaNodos();
+    ListaNodos clientes = ListaNodos();
 
-            depot = nodos.getNodo(0);
+    inst = extraerArchivo(&nodos,nombreArchivo);
 
-            for(int i=0;i<inst.numEstaciones;i++){
-                estaciones.append(nodos.getNodo(i+1));                
-            }
-            for(int i=0;i<inst.numClientes;i++){
-                clientes.append(nodos.getNodo(i+inst.numEstaciones+1));                
-            }
-            //time(&start);
-            auto t1 = high_resolution_clock::now();
-            
-            ListaVehiculos vehiculos = generarSoluciones(4000,inst,clientes,estaciones,depot);
+    depot = nodos.getNodo(0);
 
-            auto t2 = high_resolution_clock::now();
-            auto ms_int = duration_cast<milliseconds>(t2 - t1);
-            duration<double, std::milli> ms_double = t2 - t1;
-
-            //cout<<"-----SOLUCION FINAL-----\n";
-            //vehiculos.mostrar();
-            cout<<"Procesada instancia "<<nombreArchivo<<"\n";
-
-            tiempoEjecucion = ms_double.count()/1000;
-            generarOutput(vehiculos,nombreArchivo,&inst,tiempoEjecucion);
-        }
+    for(int i=0;i<inst.numEstaciones;i++){
+        estaciones.append(nodos.getNodo(i+1));                
     }
+    for(int i=0;i<inst.numClientes;i++){
+        clientes.append(nodos.getNodo(i+inst.numEstaciones+1));                
+    }
+    //time(&start);
+    auto t1 = high_resolution_clock::now();
+    
+    ListaVehiculos vehiculos = generarSoluciones(4000,inst,clientes,estaciones,depot);
+
+    auto t2 = high_resolution_clock::now();
+    auto ms_int = duration_cast<milliseconds>(t2 - t1);
+    duration<double, std::milli> ms_double = t2 - t1;
+
+    //cout<<"-----SOLUCION FINAL-----\n";
+    //vehiculos.mostrar();
+    cout<<"Procesada instancia "<<nombreArchivo<<"\n";
+
+    tiempoEjecucion = ms_double.count()/1000;
+    generarOutput(vehiculos,nombreArchivo,&inst,tiempoEjecucion);
+        
+    
     return 0;
 }
