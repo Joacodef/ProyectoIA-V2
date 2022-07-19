@@ -45,7 +45,7 @@ ListaVehiculos generarSoluciones(int maxIteraciones, Instancia inst, ListaNodos 
     ListaNodos dominioAcotado,clientesRestantes,clientesVisitados;
     ListaVehiculos mejorSolucion,solucionCandidata;
     ListaVariables variables;
-    bool backtracking = false;
+    bool backtracking = false; //Aquí se entenderá por "backtracking" el hacer saltos hacia atrás en el proceso de backtracking.
     bool variableSeAsigno = false;
     double distMejorSolucion = INFINITY;
     double distActual = 0.0;
