@@ -1,6 +1,11 @@
 # ProyectoIA
 
-Utilizar comando "make" para compilar (con el comando "g++") y ejecutar.
+En este proyecto se creó un algoritmo que resuelve el "Green Vehicle Routing Problem" (GVRP) utilizando Backtracking como técnica base.
+Las instancias del problema siguen el formato de las propuestas en el paper "An Exact Algorithm for the Green Vehicle Routing Problem" (Juho Andelmin, Enrico Bartolini).
+
+# Instrucciones
+
+Utilizar comando "make" para compilar (se usa comando "c++") y ejecutar.
 
 Utilizar "make clean" para limpiar el archivo de output.
 
